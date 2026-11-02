@@ -12,7 +12,9 @@
  */
 window.__ModuleLoader__.load({
   id: '@local/dsh-chonky-fish-themes',
-  factory() {
+  factory(require) {
+    const React = require('react')
+    const h = React.createElement
     const PACK_ID = 'white-shark'
     const ROUTE = '/skin/' + PACK_ID + '/'
     const DIAG_ROUTE = '/skin/__diag'
@@ -29,6 +31,129 @@ window.__ModuleLoader__.load({
     function tint(varName, alpha) {
       if (!(alpha < 1)) return 'var(' + varName + ')'
       return 'color-mix(in srgb, var(' + varName + ') ' + Math.round(alpha * 100) + '%, transparent)'
+    }
+
+    /* ---------------------- decor overlay（hero 装饰 / 右栏 / 水印） ---------------------- */
+    let currentTheme = null
+    const themeSubs = new Set()
+    function setTheme(next) {
+      currentTheme = next
+      for (const fn of themeSubs) fn()
+    }
+    function useTheme() {
+      const [, force] = React.useState(0)
+      React.useEffect(() => {
+        const fn = () => force((n) => n + 1)
+        themeSubs.add(fn)
+        return () => themeSubs.delete(fn)
+      }, [])
+      return currentTheme
+    }
+
+    function rectOf(selector) {
+      const el = document.querySelector(selector)
+      return el ? el.getBoundingClientRect() : null
+    }
+
+    function computeAnchors() {
+      const main = rectOf('div:has(> [data-slot="main"])')
+      const sidebar = rectOf('div:has(> [data-slot="sidebar"])')
+      const headline = rectOf('[data-content-phase="hero"] [class*="_headline"]')
+      const m = main || { left: 0, top: 0, width: innerWidth, height: innerHeight }
+      const anchors = {
+        'hero.topLeft': { x: m.left + m.width * 0.02, y: m.top + m.height * 0.04, w: m.width, h: m.height },
+        'hero.title': headline
+          ? { x: headline.left, y: headline.top, w: headline.width, h: headline.height }
+          : { x: m.left + m.width * 0.3, y: m.top + m.height * 0.34, w: m.width * 0.4, h: 40 },
+        'hero.subline': { x: m.left + m.width * 0.3, y: m.top + m.height * 0.42, w: m.width * 0.4, h: 24 },
+        rail: { x: m.left + m.width * 0.87, y: m.top + m.height * 0.1, w: m.width * 0.11, h: m.height },
+        bottom: { x: m.left + m.width * 0.03, y: innerHeight - 54, w: m.width, h: 40 },
+        'sidebar.card': sidebar
+          ? { x: sidebar.left + 16, y: sidebar.top + 76, w: sidebar.width - 32, h: 230 }
+          : { x: 16, y: 76, w: 260, h: 230 },
+      }
+      return anchors
+    }
+
+    function offsetPx(value, base) {
+      if (typeof value === 'number' && Number.isFinite(value)) return value
+      if (typeof value === 'string' && value.endsWith('%')) return (parseFloat(value) / 100) * base
+      return 0
+    }
+    function posPx(anchorValue, decorValue, base) {
+      return (anchorValue + offsetPx(decorValue, base)).toFixed(1) + 'px'
+    }
+
+    const COLOR_VARS = {
+      'label-primary': 'var(--dsw-alias-label-primary)',
+      'label-secondary': 'var(--dsw-alias-label-secondary)',
+      'label-tertiary': 'var(--dsw-alias-label-tertiary)',
+    }
+    const FONT_VARS = {
+      text: 'var(--dsw-font-family)',
+      code: 'var(--ds-font-family-code)',
+      brand: 'var(--dsw-font-family-brand)',
+    }
+
+    function decorTextStyle(d) {
+      return {
+        position: 'absolute',
+        fontFamily: FONT_VARS[d.font] || FONT_VARS.text,
+        fontSize: (d.size || 12) + 'px',
+        letterSpacing: d.letterSpacing || 'normal',
+        lineHeight: d.lineHeight || 1.2,
+        opacity: typeof d.opacity === 'number' ? d.opacity : 0.6,
+        color: COLOR_VARS[d.color] || d.color || 'var(--dsw-alias-label-tertiary)',
+        whiteSpace: 'pre-line',
+        userSelect: 'none',
+        pointerEvents: 'none',
+      }
+    }
+
+    function DecorOverlay() {
+      const theme = useTheme()
+      const [, tick] = React.useState(0)
+      React.useEffect(() => {
+        const id = setInterval(() => tick((n) => n + 1), 900)
+        return () => clearInterval(id)
+      }, [])
+      const decor = theme && Array.isArray(theme.decor) ? theme.decor : []
+      if (decor.length === 0) return null
+      const anchors = computeAnchors()
+      const inHero = Boolean(document.querySelector('[data-content-phase="hero"]'))
+      const children = []
+      decor.forEach((d, i) => {
+        const anchor = anchors[d.anchor]
+        if (!anchor) return
+        const heroAnchor = String(d.anchor).indexOf('hero.') === 0
+        if (heroAnchor && !inHero) return
+        if (d.kind === 'text') {
+          children.push(h('div', {
+            key: 'decor-' + i,
+            'data-skin-decor': String(i),
+            style: {
+              ...decorTextStyle(d),
+              left: posPx(anchor.x, d.x, anchor.w),
+              top: posPx(anchor.y, d.y, anchor.h),
+            },
+          }, d.text))
+        } else if (d.kind === 'rail') {
+          children.push(h('div', {
+            key: 'decor-' + i,
+            style: { ...decorTextStyle(d), left: anchor.x + 'px', top: anchor.y + 'px', display: 'flex', flexDirection: 'column' },
+          }, (d.items || []).map((item, j) => h('div', { key: 'rail-' + j }, item))))
+        } else if (d.kind === 'watermark') {
+          children.push(h('div', {
+            key: 'decor-' + i,
+            'data-skin-decor': String(i),
+            style: { ...decorTextStyle(d), left: anchor.x + 'px', top: anchor.y + 'px' },
+          }, d.text))
+        }
+      })
+      return h('div', {
+        style: { position: 'fixed', inset: 0, pointerEvents: 'none', zIndex: 5, overflow: 'hidden' },
+        'aria-hidden': true,
+      }, children)
     }
 
     function collectCardInfo() {
@@ -116,6 +241,23 @@ window.__ModuleLoader__.load({
         cur = cur.parentElement
       }
       out.push({ label: 'ancestorChain', chain })
+
+      // hero headline 候选元素
+      const cands = []
+      for (const el of document.querySelectorAll('[class*="_headline"], [class*="titleGroup"], [class*="_stack"]')) {
+        const r = el.getBoundingClientRect()
+        cands.push({ cls: String(el.className || '').slice(0, 40), rect: Math.round(r.left) + ',' + Math.round(r.top) + ' ' + Math.round(r.width) + 'x' + Math.round(r.height), text: String(el.textContent || '').slice(0, 24) })
+      }
+      out.push({ label: 'headlineCandidates', cands: cands.slice(0, 8) })
+      const decors = []
+      for (const el of document.querySelectorAll('[data-skin-decor]')) {
+        const r = el.getBoundingClientRect()
+        decors.push({ i: el.getAttribute('data-skin-decor'), rect: Math.round(r.left) + ',' + Math.round(r.top) + ' ' + Math.round(r.width) + 'x' + Math.round(r.height), text: String(el.textContent || '').slice(0, 20) })
+      }
+      out.push({ label: 'decorNodes', count: decors.length, nodes: decors.slice(0, 8) })
+      out.push({ label: 'anchors', anchors: computeAnchors() })
+      out.push({ label: 'decorData', data: (currentTheme && currentTheme.decor || []).map((d) => ({ kind: d.kind, anchor: d.anchor, x: d.x, y: d.y })) })
+      out.push({ label: 'phase', hero: Boolean(document.querySelector('[data-content-phase="hero"]')), phaseEl: (document.querySelector('[data-content-phase]') || {}).getAttribute ? document.querySelector('[data-content-phase]').getAttribute('data-content-phase') : null })
       return out
     }
 
@@ -405,8 +547,14 @@ window.__ModuleLoader__.load({
     }
 
     return {
-      inject: ['theme'],
+      inject: ['theme', 'slots'],
       apply(ctx) {
+        ctx.slots.inject('shell.overlay', () => ctx.slots.register({
+          name: 'shell.overlay',
+          id: 'chonky-fish-themes-decor',
+          order: 20,
+        }, DecorOverlay))
+
         ctx.effect(() => {
           let disposed = false
           const disposers = []
@@ -424,6 +572,7 @@ window.__ModuleLoader__.load({
             })
             .then((theme) => {
               if (disposed) return
+              setTheme(theme)
               const frameRel = theme.assets && theme.assets['composer.frame']
               const frameAvailable = Boolean(theme._available && theme._available.assets && theme._available.assets['composer.frame'])
               const frameUrl = frameAvailable && frameRel ? assetUrl(frameRel) : null
