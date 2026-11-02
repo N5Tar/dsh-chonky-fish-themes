@@ -7,6 +7,7 @@ DeepSeek Harness（DSH）皮肤引擎 + `white-shark` 主题包。
 ## 结构
 
 ```
+assets/<style>/          拖入的原始素材归档（不参与打包；见 assets/white-shark/README.md）
 index.js                 Host 半：/skin 静态路由 + theme.json 注入 _available（文件是否就绪）
 client.js                Client 半：读 theme.json → 覆盖 token + 注入样式 + 装饰层（overlay）
 packs/<id>/theme.json    主题契约：tokens / geometry / copy / decor / capabilities
@@ -54,6 +55,8 @@ node --check client.js && node --check index.js
 `theme.json` 是主题包与本引擎之间的唯一数据接口：字段、取值范围与验收口径由本仓库的 `tools/validate-pack.mjs` 校验（运行 `node tools/validate-pack.mjs packs/<id>` 即得到当前契约的判定结果）。本仓库只放代码与素材。
 
 ## 素材状态
+
+原始素材归档在 `assets/white-shark/`（风格目录 = 主题包 id），运行产物在 `packs/white-shark/`。
 
 | 素材 | 状态 |
 | --- | --- |
