@@ -144,6 +144,9 @@ window.__ModuleLoader__.load({
       const sidebarRect = rectOf('div:has(> [data-slot="sidebar"])')
       const brandRect = rectOf('[class*="_logoRow"]')
       const caps = Array.isArray(theme && theme.capabilities) ? theme.capabilities : []
+      const portraitUrl = (theme && theme._available && theme._available.assets && theme._available.assets.portrait && theme.assets && theme.assets.portrait)
+        ? ROUTE + theme.assets.portrait
+        : null
 
       if (sidebarRect && (copy.statusLabel || copy.brandMicroline)) {
         children.push(h('div', {
@@ -181,11 +184,15 @@ window.__ModuleLoader__.load({
         },
           h('div', {
             style: {
-              height: '84px', border: '1px solid rgba(28,28,31,0.18)',
-              backgroundImage: 'repeating-linear-gradient(45deg,rgba(28,28,31,0.05) 0 5px,transparent 5px 11px)',
+              height: '84px', border: portraitUrl ? '0' : '1px solid rgba(28,28,31,0.18)',
+              backgroundImage: portraitUrl
+                ? 'url("' + portraitUrl + '")'
+                : 'repeating-linear-gradient(45deg,rgba(28,28,31,0.05) 0 5px,transparent 5px 11px)',
+              backgroundSize: portraitUrl ? '170% auto' : 'cover',
+              backgroundPosition: portraitUrl ? 'center 34%' : 'center',
               display: 'grid', placeItems: 'center',
             },
-          }, h('div', { style: { fontFamily: 'var(--ds-font-family-code)', fontSize: '9px', letterSpacing: '0.24em', color: 'var(--dsw-alias-label-tertiary)' } }, 'PORTRAIT')),
+          }, portraitUrl ? null : h('div', { style: { fontFamily: 'var(--ds-font-family-code)', fontSize: '9px', letterSpacing: '0.24em', color: 'var(--dsw-alias-label-tertiary)' } }, 'PORTRAIT')),
           h('div', { style: { fontFamily: 'var(--dsw-font-family-brand)', fontSize: '24px', fontWeight: 700, lineHeight: 1.1, color: 'var(--dsw-alias-label-primary)', letterSpacing: '0.02em' } }, copy.profile.name),
           copy.profile.subtitle ? h('div', { style: { fontSize: '11px', color: 'var(--dsw-alias-label-secondary)', lineHeight: 1.5 } }, copy.profile.subtitle) : null,
           copy.profile.signature ? h('div', { style: { fontFamily: 'var(--ds-font-family-code)', fontSize: '16px', fontStyle: 'italic', color: 'var(--dsw-alias-label-tertiary)', opacity: 0.85 } }, copy.profile.signature) : null,
