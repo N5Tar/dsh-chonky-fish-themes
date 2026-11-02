@@ -173,18 +173,20 @@ window.__ModuleLoader__.load({
       /* --- composer card shape ------------------------------------------------- */
       if (composerChrome === 'css') {
         const c = Math.max(Math.min(chamfer, 16), 10)
-        // 纯 CSS 卡片：近实白卡面 + 切角 + 细深描边（不使用 backdrop-filter / drop-shadow，
-        // 避免半透卡面透出宿主的测高副本与合成异常）
+        // 纯 CSS 卡片：近实白卡面 + 切角 + 深色偏置垫板（drop-shadow 跟随切角形状；
+        // 卡面接近不透明，避免透出宿主的测高副本）
         out.push(
           '[data-composer-card]{' +
             'position:relative;isolation:isolate;' +
-            'border:1px solid rgba(28,28,31,0.45)!important;' +
+            'border:1px solid rgba(28,28,31,0.55)!important;' +
             'border-radius:0!important;box-sizing:border-box;' +
-            'background:rgba(255,255,255,0.96)!important;' +
-            'box-shadow:0 10px 30px -18px rgba(0,0,0,0.35)!important;' +
+            'background:rgba(255,255,255,0.98)!important;' +
+            'box-shadow:none!important;' +
             'clip-path:polygon(' + c + 'px 0,100% 0,100% calc(100% - ' + c + 'px),' +
             'calc(100% - ' + c + 'px) 100%,0 100%,0 ' + c + 'px)' +
             '}',
+          '[data-composer-card]{filter:drop-shadow(' + Math.max(plateOffset, 8) + 'px ' +
+            Math.max(plateOffset, 8) + 'px 0 ' + plateColor + ')}',
           // 工具行：+ 方形描边、提交方形深色、placeholder 收色
           '[data-composer-card] [class*="_add"]{width:32px;height:32px;border:1px solid rgba(28,28,31,0.25)!important;' +
             'border-radius:2px!important;background:transparent!important;color:#1c1c1f!important}',
@@ -193,6 +195,7 @@ window.__ModuleLoader__.load({
           '[data-composer-card] [class*="_primary"] svg{color:#ffffff!important}',
           '[data-composer-card] [class*="_placeholder"]{color:#9a9aa0!important}',
           '[data-composer-card] [class*="_tools"]{gap:10px}',
+          '[data-composer-card] [class*="_trailing"]{font-weight:500;letter-spacing:0.01em}',
         )
       } else if (frame && frameReady) {
         // 素材外框：9-slice，内容叠在内部；垫板/切角由素材自身表达
