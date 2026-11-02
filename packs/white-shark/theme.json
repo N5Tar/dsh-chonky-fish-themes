@@ -1,0 +1,188 @@
+{
+  "packVersion": "0.1.0",
+  "id": "white-shark",
+  "minEngine": "0.1.0",
+  "meta": {
+    "name": { "zh": "白鲨", "en": "White Shark" },
+    "author": "chonky-fish",
+    "version": "0.1.0",
+    "colorScheme": "light"
+  },
+  "tokens": {
+    "--dsw-alias-bg-base": { "light": "#f4f4f5", "dark": "#0e1013" },
+    "--dsw-alias-bg-layer-1": { "light": "#ffffff", "dark": "#14171b" },
+    "--dsw-alias-bg-layer-2": { "light": "#f7f7f8", "dark": "#1a1d22" },
+    "--dsw-alias-bg-overlay": { "light": "rgba(255,255,255,0.94)", "dark": "rgba(18,21,25,0.94)" },
+    "--dsw-specific-sidebar-fill": { "light": "#f7f8f7", "dark": "#111417" },
+    "--dsw-specific-input-major": { "light": "rgba(255,255,255,0.82)", "dark": "rgba(22,25,30,0.86)" },
+    "--dsw-specific-menu": { "light": "#ffffff", "dark": "#14171b" },
+    "--dsw-alias-label-primary": { "light": "#1c1c1f", "dark": "#f2f2f3" },
+    "--dsw-alias-label-secondary": { "light": "#6b6b70", "dark": "#a6a8ae" },
+    "--dsw-alias-label-tertiary": { "light": "#9a9aa0", "dark": "#6f7278" },
+    "--dsw-alias-border-l1": { "light": "rgba(28,28,31,0.08)", "dark": "rgba(255,255,255,0.10)" },
+    "--dsw-alias-border-l2": { "light": "rgba(28,28,31,0.14)", "dark": "rgba(255,255,255,0.16)" },
+    "--dsw-alias-border-l3": { "light": "rgba(28,28,31,0.20)", "dark": "rgba(255,255,255,0.22)" },
+    "--dsw-alias-brand-primary": { "light": "#1c1c1f", "dark": "#f2f2f3" },
+    "--dsw-alias-state-error-primary": { "light": "#d92d20", "dark": "#ff6b60" },
+    "--dsw-alias-state-warn-primary": { "light": "#a86f14", "dark": "#e0b45c" },
+    "--dsw-alias-state-success-primary": { "light": "#2e7d5b", "dark": "#6cc79a" },
+    "--dsw-alias-state-idle-primary": { "light": "#9a9aa0", "dark": "#6f7278" },
+    "--dsw-radius-xs": { "light": "2px", "dark": "2px" },
+    "--dsw-radius-sm": { "light": "2px", "dark": "2px" },
+    "--dsw-radius-md": { "light": "4px", "dark": "4px" },
+    "--dsw-radius-lg": { "light": "6px", "dark": "6px" },
+    "--dsw-radius-xl": { "light": "8px", "dark": "8px" },
+    "--dsw-radius-panel": { "light": "0px", "dark": "0px" },
+    "--dsw-elevation-soft": {
+      "light": "0 18px 40px -16px rgba(0,0,0,0.18)",
+      "dark": "0 18px 40px -16px rgba(0,0,0,0.6)"
+    },
+    "--dsw-focus-ring-color": { "light": "#1c1c1f", "dark": "#f2f2f3" },
+    "--dsh-scrollbar-thumb": { "light": "rgba(28,28,31,0.18)", "dark": "rgba(255,255,255,0.20)" },
+    "--dsw-font-family": {
+      "light": "\"WS Sans\",\"Noto Sans SC\",\"PingFang SC\",sans-serif",
+      "dark": "\"WS Sans\",\"Noto Sans SC\",\"PingFang SC\",sans-serif"
+    },
+    "--dsw-font-family-brand": {
+      "light": "\"WS Sans\",\"Noto Sans SC\",sans-serif",
+      "dark": "\"WS Sans\",\"Noto Sans SC\",sans-serif"
+    },
+    "--ds-font-family-code": {
+      "light": "\"WS Mono\",\"JetBrains Mono\",monospace",
+      "dark": "\"WS Mono\",\"JetBrains Mono\",monospace"
+    }
+  },
+  "fonts": [
+    { "family": "WS Sans", "weight": 400, "style": "normal", "src": "fonts/ws-sans-400.woff2", "display": "swap" },
+    { "family": "WS Sans", "weight": 500, "style": "normal", "src": "fonts/ws-sans-500.woff2", "display": "swap" },
+    { "family": "WS Sans", "weight": 600, "style": "normal", "src": "fonts/ws-sans-600.woff2", "display": "swap" },
+    { "family": "WS Mono", "weight": 400, "style": "normal", "src": "fonts/ws-mono-400.woff2", "display": "swap" },
+    { "family": "WS Mono", "weight": 500, "style": "normal", "src": "fonts/ws-mono-500.woff2", "display": "swap" },
+    { "family": "Noto Sans SC", "weight": 400, "style": "normal", "src": "fonts/noto-sans-sc-400.woff2", "display": "swap" },
+    { "family": "Noto Sans SC", "weight": 700, "style": "normal", "src": "fonts/noto-sans-sc-700.woff2", "display": "swap" }
+  ],
+  "assets": {
+    "bg.main": "bg.webp",
+    "bg.wide": "bg-21x9.webp",
+    "portrait": "portrait.webp",
+    "wordmark": "wordmark.svg",
+    "signature": "signature.svg",
+    "decor.hud": "decor/hud.svg",
+    "noise": "noise.png",
+    "icon": "icon.svg"
+  },
+  "geometry": {
+    "frameInset": 12,
+    "chamfer": 18,
+    "chamferStyle": "corner-cut",
+    "plateColor": "#202023",
+    "sidebarAlpha": 0.94,
+    "centerAlpha": 0.82,
+    "heroCenterAlpha": 0.0,
+    "composerPlateOffset": 8,
+    "noiseOpacity": 0.03,
+    "darkScrim": 0.72
+  },
+  "copy": {
+    "mode": "official",
+    "brandMicroline": "DEEP · SMART · HUMAN",
+    "statusLabel": "LINK ACTIVE",
+    "profile": {
+      "name": "大肥鱼",
+      "subtitle": "与世界，保持适当距离。",
+      "label": "DSH ASSISTANT"
+    }
+  },
+  "decor": [
+    {
+      "kind": "text",
+      "anchor": "hero.topLeft",
+      "x": "2%",
+      "y": "4%",
+      "text": "OCEANIC\nPROTOCOL",
+      "font": "code",
+      "size": 11,
+      "letterSpacing": "0.18em",
+      "lineHeight": 1.5,
+      "opacity": 0.55,
+      "color": "label-tertiary"
+    },
+    {
+      "kind": "text",
+      "anchor": "hero.topLeft",
+      "x": "2%",
+      "y": "26%",
+      "text": "ANALYZE\nREASON\nPLAN\nEXECUTE",
+      "font": "code",
+      "size": 10,
+      "letterSpacing": "0.10em",
+      "lineHeight": 1.9,
+      "opacity": 0.45,
+      "color": "label-tertiary"
+    },
+    {
+      "kind": "text",
+      "anchor": "hero.title",
+      "x": 0,
+      "y": -88,
+      "text": "//02A",
+      "font": "brand",
+      "size": 56,
+      "letterSpacing": "0.02em",
+      "lineHeight": 1,
+      "opacity": 0.3,
+      "color": "label-tertiary"
+    },
+    {
+      "kind": "text",
+      "anchor": "hero.title",
+      "x": 0,
+      "y": -28,
+      "text": "GREAT WHITE CLASS",
+      "font": "code",
+      "size": 12,
+      "letterSpacing": "0.30em",
+      "lineHeight": 1,
+      "opacity": 0.5,
+      "color": "label-tertiary"
+    },
+    {
+      "kind": "rail",
+      "anchor": "rail",
+      "items": ["DAFEIYU", "GREAT WHITE CLASS", "02", "DSH AI ASSISTANT"],
+      "font": "brand",
+      "size": 11,
+      "letterSpacing": "0.20em",
+      "lineHeight": 2.2,
+      "opacity": 0.55,
+      "color": "label-secondary"
+    },
+    {
+      "kind": "watermark",
+      "anchor": "bottom",
+      "text": "DSH ///",
+      "font": "brand",
+      "size": 12,
+      "letterSpacing": "0.24em",
+      "lineHeight": 1,
+      "opacity": 0.7,
+      "color": "label-tertiary"
+    }
+  ],
+  "chrome": {
+    "logoMode": "css-replace",
+    "brandLogo": "wordmark",
+    "dimWindowControls": true
+  },
+  "capabilities": [
+    "profileCard",
+    "rightRail",
+    "bottomBar",
+    "heroDecor",
+    "hudLayer",
+    "noiseOverlay",
+    "logoReplace",
+    "customCss"
+  ],
+  "customCss": "skin.css"
+}
