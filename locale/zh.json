@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "大肥鱼皮肤",
+    "description": "Harness Web 界面的皮肤引擎：读取主题包（素材 + theme.json），渲染配色、主视觉、面板透明与输入卡造型，不修改宿主代码。"
+  }
+}

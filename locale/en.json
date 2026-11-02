@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "Chonky Fish Themes",
+    "description": "Skin engine for the Harness Web UI: loads a theme pack (assets + theme.json) and renders its palette, artwork, panel translucency and composer chrome without touching the shipped code."
+  }
+}

@@ -1,11 +1,22 @@
 {
-  "name": "dsh-chonky-fish-themes",
-  "version": "0.0.0",
+  "name": "@local/dsh-chonky-fish-themes",
+  "version": "0.1.0",
   "private": true,
-  "description": "DSH skin theme plugin: engine + theme asset packs",
+  "description": "Chonky Fish theme engine for the Harness Web UI: skin packs (assets + theme.json) rendered over the shipped UI.",
   "type": "module",
+  "exports": {
+    ".": "./index.js",
+    "./client": "./client.js",
+    "./locale/*.json": "./locale/*.json",
+    "./icon": "./icon.svg"
+  },
+  "files": ["index.js", "client.js", "cordis.patch.yml", "locale/*.json", "icon.svg", "packs", "tools"],
   "scripts": {
     "validate": "node tools/validate-pack.mjs packs/white-shark",
     "validate:all": "node tools/validate-pack.mjs packs/white-shark --allow-missing-files"
+  },
+  "dsh": {
+    "bundle": { "patch": "./cordis.patch.yml" },
+    "client": { "platform": "web", "immediately": true, "inject": ["@deepseek-ai/dsh-client-ui-theme"] }
   }
 }
