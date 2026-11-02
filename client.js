@@ -478,6 +478,7 @@ window.__ModuleLoader__.load({
       const composerMinHeight = num(geometry.composerMinHeight, 178)
       const composerPaddingY = num(geometry.composerPaddingY, 24)
       const composerPaddingX = num(geometry.composerPaddingX, 28)
+      const composerGlassAlpha = num(geometry.composerGlassAlpha, 0.62)
       const frameBg = assetAvailable['composer.frameBg']
         ? assetUrl(theme.assets && theme.assets['composer.frameBg'])
         : null
@@ -577,9 +578,11 @@ window.__ModuleLoader__.load({
           '[data-composer-card]{' +
             'position:relative;isolation:isolate;' +
             'border:0!important;border-radius:0!important;box-sizing:border-box;' +
-            'background-image:url("' + frameBg + '")!important;' +
+            'background-image:url("' + frameBg + '"),' +
+              'linear-gradient(180deg,rgba(255,255,255,' + composerGlassAlpha + '),' +
+              'rgba(243,245,247,' + (composerGlassAlpha * 0.84).toFixed(3) + '))!important;' +
             'background-color:transparent!important;' +
-            'backdrop-filter:none!important;' +
+            'backdrop-filter:blur(12px) saturate(1.04);' +
             'background-size:100% 100%,auto!important;background-position:center,0 0!important;' +
             'background-repeat:no-repeat!important;background-origin:border-box!important;' +
             'background-clip:border-box!important;' +

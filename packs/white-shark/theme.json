@@ -257,7 +257,8 @@
     "composerMaxWidth": 720,
     "composerMinHeight": 178,
     "composerPaddingY": 24,
-    "composerPaddingX": 28
+    "composerPaddingX": 28,
+    "composerGlassAlpha": 0.62
   },
   "copy": {
     "mode": "official",

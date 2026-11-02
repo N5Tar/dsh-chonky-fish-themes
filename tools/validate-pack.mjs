@@ -79,6 +79,7 @@ const GEOMETRY_RULES = {
   composerMinHeight: { type: 'number', min: 100, max: 320 },
   composerPaddingY: { type: 'number', min: 0, max: 60 },
   composerPaddingX: { type: 'number', min: 0, max: 60 },
+  composerGlassAlpha: { type: 'number', min: 0, max: 1 },
 }
 
 const RECOMMENDED_TOKENS = [
