@@ -132,7 +132,7 @@ window.__ModuleLoader__.load({
         out.push(
           '[data-composer-card]{' +
             'position:relative;isolation:isolate;' +
-            'border:0 solid transparent!important;border-radius:0!important;' +
+            'border:' + frameWidth + 'px solid transparent!important;box-sizing:border-box;border-radius:0!important;' +
             'border-image-source:url("' + frame + '");' +
             'border-image-slice:' + frameSlice + ';' +
             'border-image-width:' + frameWidth + 'px;' +
