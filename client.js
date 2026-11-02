@@ -934,7 +934,7 @@ window.__ModuleLoader__.load({
           method: 'POST',
           headers: { 'content-type': 'application/json' },
           body: JSON.stringify({
-            themeId: PACK_ID,
+            themeId: packIdOf(theme),
             href: location.href,
             origin: location.origin,
             ua: navigator.userAgent,
@@ -1009,7 +1009,7 @@ window.__ModuleLoader__.load({
 
       out.push(
         ':root{' +
-          '--cf-pack-id:"' + (theme.id || PACK_ID) + '";' +
+          '--cf-pack-id:"' + packIdOf(theme) + '";' +
           '--cf-chamfer:' + chamfer + 'px;' +
           '--cf-plate-color:' + plateColor + ';' +
           '--cf-plate-offset:' + plateOffset + 'px;' +
@@ -1312,7 +1312,7 @@ window.__ModuleLoader__.load({
       disposers.push(() => style.remove())
 
       if (theme && theme.tokens && ctx.theme) {
-        disposers.push(ctx.theme.overrideTokens(PACK_ID, theme.tokens))
+        disposers.push(ctx.theme.overrideTokens(packIdOf(theme), theme.tokens))
       }
 
       diag({
@@ -1412,7 +1412,12 @@ window.__ModuleLoader__.load({
               return
             }
             setTheme(themeCache)
-            applyPack(ctx, themeCache, applied, frameReady)
+            try {
+              applyPack(ctx, themeCache, applied, frameReady)
+            } catch (err) {
+              console.error(LOG, 'applyPack failed:', err)
+              diag({ stage: 'apply-error', pack: packIdOf(themeCache), message: String((err && err.message) || err) })
+            }
           }
 
           const probeFrame = (theme) => {
