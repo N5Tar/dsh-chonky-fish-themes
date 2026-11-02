@@ -236,9 +236,12 @@ window.__ModuleLoader__.load({
       out.push(
         'div:has(> [data-slot="sidebar"]){background:' +
           tint('--dsw-specific-sidebar-fill', sidebarAlpha) + '!important}',
-        'div:has(> [data-slot="main"]){background:' +
-          tint('--dsw-alias-bg-base', centerAlpha) + '!important;' +
-          'backdrop-filter:blur(16px) saturate(1.06)}',
+        // 会话态：不再整体加白/模糊，改成「左侧渐隐白纱」，右侧保持底图清晰
+        'div:has(> [data-slot="main"]){background:linear-gradient(90deg,' +
+          'rgba(255,255,255,' + centerAlpha + ') 0%,' +
+          'rgba(255,255,255,' + (centerAlpha * 0.55).toFixed(3) + ') 46%,' +
+          'rgba(255,255,255,0) 80%)!important;' +
+          'backdrop-filter:none!important}',
         'div:has(> [data-slot="main"]):has([data-content-phase="hero"]){background:' +
           tint('--dsw-alias-bg-base', heroCenterAlpha) + '!important;backdrop-filter:none!important}',
         'div:has(> [data-slot="rightbar"]){background:transparent!important}',
@@ -473,3 +476,5 @@ window.__ModuleLoader__.load({
 /* hmr 1793600859 */
 
 /* sync 1793600938 */
+
+/* sync 1793601301 */

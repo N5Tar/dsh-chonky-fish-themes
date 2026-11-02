@@ -167,6 +167,10 @@
     "--dsh-composer-side-clearance": {
       "light": "16px",
       "dark": "16px"
+    },
+    "--dsh-chat-content-width": {
+      "light": "640px",
+      "dark": "640px"
     }
   },
   "fonts": [
@@ -239,7 +243,7 @@
     "chamferStyle": "corner-cut",
     "plateColor": "#202023",
     "sidebarAlpha": 0.94,
-    "centerAlpha": 0.5,
+    "centerAlpha": 0.55,
     "heroCenterAlpha": 0.0,
     "composerPlateOffset": 8,
     "noiseOpacity": 0.03,
