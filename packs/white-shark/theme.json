@@ -159,6 +159,14 @@
     "--dsw-alias-label-dimmed": {
       "light": "#b4b4ba",
       "dark": "#5b5e64"
+    },
+    "--dsh-composer-card-max-width": {
+      "light": "720px",
+      "dark": "720px"
+    },
+    "--dsh-composer-side-clearance": {
+      "light": "16px",
+      "dark": "16px"
     }
   },
   "fonts": [
