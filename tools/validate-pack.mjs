@@ -75,7 +75,7 @@ const GEOMETRY_RULES = {
   composerChrome: { type: 'enum', values: new Set(['css', 'frame', 'asset']) },
   portraitZoom: { type: 'number', min: 80, max: 300 },
   portraitFocusY: { type: 'number', min: 0, max: 100 },
-  profilePortraitHeight: { type: 'number', min: 48, max: 200 },
+  profilePortraitHeight: { type: 'number', min: 48, max: 260 },
   composerMaxWidth: { type: 'number', min: 420, max: 1000 },
   composerMinHeight: { type: 'number', min: 100, max: 320 },
   composerPaddingY: { type: 'number', min: 0, max: 60 },
