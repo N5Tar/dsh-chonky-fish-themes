@@ -213,7 +213,10 @@
     "artOpacity": 1,
     "railWidth": 34,
     "chatGlassPadX": 22,
-    "chatGlassPadY": 12
+    "chatGlassPadY": 12,
+    "bgFit": "width",
+    "bgPosition": "center top",
+    "bgFill": "#dde4e8"
   },
   "copy": {
     "mode": "official",

@@ -88,6 +88,9 @@ const GEOMETRY_RULES = {
   composerGlassInset: { type: 'number', min: 0, max: 40 },
   composerBlur: { type: 'number', min: 0, max: 40 },
   artOpacity: { type: 'number', min: 0, max: 1 },
+  bgFit: { type: 'enum', values: new Set(['cover', 'width', 'contain']) },
+  bgPosition: { type: 'string' },
+  bgFill: { type: 'string' },
 }
 
 const RECOMMENDED_TOKENS = [

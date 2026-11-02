@@ -1001,6 +1001,9 @@ window.__ModuleLoader__.load({
       const chatGlassPadX = num(geometry.chatGlassPadX, 22)
       const chatGlassPadY = num(geometry.chatGlassPadY, 12)
       const artOpacity = num(geometry.artOpacity, 1)
+      const bgFit = typeof geometry.bgFit === 'string' ? geometry.bgFit : 'cover'
+      const bgPosition = typeof geometry.bgPosition === 'string' ? geometry.bgPosition : 'center'
+      const bgFill = typeof geometry.bgFill === 'string' ? geometry.bgFill : '#e9edf0'
       const frameBg = assetAvailable['composer.frameBg']
         ? assetUrl(theme.assets && theme.assets['composer.frameBg'], packIdOf(theme))
         : null
@@ -1034,7 +1037,12 @@ window.__ModuleLoader__.load({
         out.push(
           'html{background-color:transparent!important}',
           'body::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;' +
-            'background:url("' + bg + '") center/cover no-repeat!important;opacity:' + artOpacity + '}',
+            'background-color:' + bgFill + ';' +
+            'background-image:url("' + bg + '");' +
+            'background-repeat:no-repeat;' +
+            'background-position:' + bgPosition + ';' +
+            'background-size:' + (bgFit === 'width' ? '100% auto' : bgFit === 'contain' ? 'contain' : 'cover') + ';' +
+            'opacity:' + artOpacity + '}',
           darkScrim > 0
             ? 'body[data-ds-dark-theme]::before{background-image:linear-gradient(rgba(8,10,12,' + darkScrim + '),' +
               'rgba(8,10,12,' + darkScrim + ')),url("' + bg + '")!important}'
