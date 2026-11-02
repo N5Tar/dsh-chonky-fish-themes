@@ -54,6 +54,33 @@ window.__ModuleLoader__.load({
     }
 
     /** 临时诊断上报：Client → 宿主日志（无浏览器控制时定位渲染问题）。 */
+    function collectLayoutInfo() {
+      const out = []
+      const add = (label, el) => {
+        if (!el) { out.push({ label, found: false }); return }
+        const cs = getComputedStyle(el)
+        const r = el.getBoundingClientRect()
+        out.push({
+          label, tag: el.tagName.toLowerCase(), cls: String(el.className || '').slice(0, 60),
+          bg: cs.backgroundColor, bgImg: String(cs.backgroundImage).slice(0, 60),
+          size: Math.round(r.width) + 'x' + Math.round(r.height),
+        })
+      }
+      const beforeCs = getComputedStyle(document.body, '::before')
+      out.push({ label: 'body::before', bgImg: String(beforeCs.backgroundImage).slice(0, 80), pos: beforeCs.position, z: beforeCs.zIndex })
+      add('html', document.documentElement)
+      add('body', document.body)
+      add('#root', document.getElementById('root'))
+      add('rootSlot', document.querySelector('[data-slot="root"]'))
+      const rb = document.querySelector('[data-rightbar-col]')
+      add('rightbarCol', rb)
+      add('rightbarParent', rb && rb.parentElement)
+      add('sidebarCol', document.querySelector('div:has(> [data-slot="sidebar"])'))
+      add('mainCol', document.querySelector('div:has(> [data-slot="main"])'))
+      add('sidebarSlot', document.querySelector('[data-slot="sidebar"]'))
+      return out
+    }
+
     function diag(payload) {
       try {
         fetch(DIAG_ROUTE, {
@@ -147,10 +174,13 @@ window.__ModuleLoader__.load({
       /* --- background artwork -------------------------------------------------- */
       if (bg) {
         out.push(
+          'html{background-color:transparent!important}',
+          'body::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;' +
+            'background:url("' + bg + '") center/cover no-repeat!important}',
           'html[data-platform="darwin"],html[data-platform="darwin"] body{background-color:transparent!important}',
-          'html{background-image:url("' + bg + '");background-position:center;background-size:cover;' +
-            'background-repeat:no-repeat;background-attachment:fixed;background-color:transparent!important}',
-          'html body{background-color:transparent!important}',
+          'html body,#root{background-color:transparent!important}',
+          // 三列之外的 frame 本身也要透明，否则整块底图被 frame 底色盖住
+          'div:has(> [data-rightbar-col]){background:transparent!important}',
         )
         if (darkScrim > 0) {
           out.push(
@@ -324,6 +354,7 @@ window.__ModuleLoader__.load({
             }
           : null,
         computed: collectCardInfo(),
+        layout: collectLayoutInfo(),
       })
     }
 
@@ -335,6 +366,10 @@ window.__ModuleLoader__.load({
           const disposers = []
 
           diag({ stage: 'boot' })
+          const bgProbe = new Image()
+          bgProbe.onload = () => diag({ stage: 'bg-loaded', w: bgProbe.naturalWidth, h: bgProbe.naturalHeight })
+          bgProbe.onerror = (e) => diag({ stage: 'bg-error', msg: 'image failed' })
+          bgProbe.src = ROUTE + 'bg.webp'
 
           fetch(ROUTE + 'theme.json', { cache: 'no-store' })
             .then((res) => {
@@ -389,3 +424,9 @@ window.__ModuleLoader__.load({
     }
   },
 })
+
+/* hmr probe 1793600760 */
+
+/* hmr 1793600859 */
+
+/* sync 1793600938 */
