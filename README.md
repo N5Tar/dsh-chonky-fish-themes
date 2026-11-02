@@ -1,13 +1,13 @@
 # dsh-chonky-fish-themes
 
-DeepSeek Harness（DSH）皮肤引擎 + `white-shark` 主题包。
+DeepSeek Harness（DSH）皮肤引擎 + `dafeiyu-mecha` 主题包。
 
 **设计目标**：把视觉层做成「主题包 = 素材 + theme.json」，换主题只换 `packs/<id>/`，不改引擎代码。
 
 ## 结构
 
 ```
-assets/<style>/          拖入的原始素材归档（不参与打包；见 assets/white-shark/README.md）
+assets/<style>/          拖入的原始素材归档（不参与打包；见 assets/dafeiyu-mecha/README.md）
 index.js                 Host 半：/skin 静态路由 + theme.json 注入 _available（文件是否就绪）
 client.js                Client 半：读 theme.json → 覆盖 token + 注入样式 + 装饰层（overlay）
 packs/<id>/theme.json    主题契约：tokens / geometry / copy / decor / capabilities
@@ -27,7 +27,7 @@ plugin_manager install_bundle /path/to/dsh-chonky-fish-themes
 ## 开发
 
 ```bash
-node tools/validate-pack.mjs packs/white-shark --allow-missing-files   # 0 error / 素材缺失仅 warning
+node tools/validate-pack.mjs packs/dafeiyu-mecha --allow-missing-files   # 0 error / 素材缺失仅 warning
 node --check client.js && node --check index.js
 ```
 
@@ -40,7 +40,7 @@ node --check client.js && node --check index.js
 安装后：**设置 → 通用设置 → 主题**，两个选项：
 
 - **默认**：注销引擎注入的样式与 token 覆盖，回到 DSH 原生外观（无需重启）；
-- **轻机甲风**：重新注入皮肤（配色、底图、玻璃、装甲导轨、资料卡）。
+- **大肥鱼·轻甲**：重新注入皮肤（配色、底图、玻璃、装甲导轨、资料卡）。
 
 选择存在 `localStorage['cf-theme-mode']`（`mecha` 缺省 / `default`），刷新后保持。切换走的路径是 `ctx.locale` + `settings.general.item` 槽位，不修改宿主文件。
 
@@ -56,7 +56,7 @@ node --check client.js && node --check index.js
 
 ## 素材状态
 
-原始素材归档在 `assets/white-shark/`（风格目录 = 主题包 id），运行产物在 `packs/white-shark/`。
+原始素材归档在 `assets/dafeiyu-mecha/`（风格目录 = 主题包 id），运行产物在 `packs/dafeiyu-mecha/`。
 
 | 素材 | 状态 |
 | --- | --- |

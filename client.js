@@ -15,7 +15,7 @@ window.__ModuleLoader__.load({
   factory(require) {
     const React = require('react')
     const h = React.createElement
-    const PACK_ID = 'white-shark'
+    const PACK_ID = 'dafeiyu-mecha'
     const ROUTE = '/skin/' + PACK_ID + '/'
     const DIAG_ROUTE = '/skin/__diag'
     const LOG = '[chonky-fish-themes]'
@@ -115,7 +115,7 @@ window.__ModuleLoader__.load({
       }
     }
 
-    /* ---- 主题模式：默认 / 轻机甲风（设置 → 通用 里的一行） ---- */
+    /* ---- 主题模式：默认 / 大肥鱼·轻甲（设置 → 通用 里的一行） ---- */
     const MODE_KEY = 'cf-theme-mode'
     const MODES = ['default', 'mecha']
     function readThemeMode() {
@@ -148,8 +148,8 @@ window.__ModuleLoader__.load({
     /* ---- 本地化（复用宿主 locale 服务；缺字典时回退中文） ---- */
     const LOCALE_NS = 'chonky-fish-themes'
     const LOCALE_DICT = {
-      zh: { 'theme.label': '主题', 'theme.default': '默认', 'theme.mecha': '轻机甲风' },
-      en: { 'theme.label': 'Theme', 'theme.default': 'Default', 'theme.mecha': 'Light Mecha' },
+      zh: { 'theme.label': '主题', 'theme.default': '默认', 'theme.mecha': '大肥鱼·轻甲' },
+      en: { 'theme.label': 'Theme', 'theme.default': 'Default', 'theme.mecha': 'Dafeiyu · Light Armor' },
     }
     let translateRef = null
     const localeSubs = new Set()
@@ -171,14 +171,14 @@ window.__ModuleLoader__.load({
       }, [])
     }
 
-    /** 设置 → 通用 里的一行：主题选择（默认 DSH / 轻机甲风）。 */
+    /** 设置 → 通用 里的一行：主题选择（默认 DSH / 大肥鱼·轻甲）。 */
     function ThemeModeRow() {
       const mode = useThemeMode()
       useLocaleVersion()
       const label = t('theme.label', '主题')
       const options = [
         { id: 'default', text: t('theme.default', '默认') },
-        { id: 'mecha', text: t('theme.mecha', '轻机甲风') },
+        { id: 'mecha', text: t('theme.mecha', '大肥鱼·轻甲') },
       ]
       return h('div', {
         'data-skin-setting': 'theme-mode',

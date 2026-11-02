@@ -12,8 +12,8 @@
   },
   "files": ["index.js", "client.js", "cordis.patch.yml", "locale/*.json", "icon.svg", "packs", "tools"],
   "scripts": {
-    "validate": "node tools/validate-pack.mjs packs/white-shark",
-    "validate:all": "node tools/validate-pack.mjs packs/white-shark --allow-missing-files"
+    "validate": "node tools/validate-pack.mjs packs/dafeiyu-mecha",
+    "validate:all": "node tools/validate-pack.mjs packs/dafeiyu-mecha --allow-missing-files"
   },
   "dsh": {
     "bundle": { "patch": "./cordis.patch.yml" },

@@ -1,11 +1,11 @@
 {
   "packVersion": "0.1.0",
-  "id": "white-shark",
+  "id": "dafeiyu-mecha",
   "minEngine": "0.1.0",
   "meta": {
     "name": {
-      "zh": "白鲨",
-      "en": "White Shark"
+      "zh": "大肥鱼·轻甲",
+      "en": "Dafeiyu · Light Armor"
     },
     "author": "chonky-fish",
     "version": "0.1.0",

@@ -130,7 +130,7 @@ const flags = new Set(args.filter((a) => a.startsWith('--')))
 const allowMissing = flags.has('--allow-missing-files')
 const asJson = flags.has('--json')
 const packArg = args.find((a) => !a.startsWith('--'))
-const packDir = resolve(packArg ?? join(REPO, 'packs/white-shark'))
+const packDir = resolve(packArg ?? join(REPO, 'packs/dafeiyu-mecha'))
 const themePath = join(packDir, 'theme.json')
 
 if (!existsSync(themePath)) {
