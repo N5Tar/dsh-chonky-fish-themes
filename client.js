@@ -122,6 +122,60 @@ window.__ModuleLoader__.load({
       const anchors = computeAnchors()
       const inHero = Boolean(document.querySelector('[data-content-phase="hero"]'))
       const children = []
+      const copy = (theme && theme.copy) || {}
+      const sidebarRect = rectOf('div:has(> [data-slot="sidebar"])')
+      const brandRect = rectOf('[class*="_logoRow"]')
+      const caps = Array.isArray(theme && theme.capabilities) ? theme.capabilities : []
+
+      if (sidebarRect && (copy.statusLabel || copy.brandMicroline)) {
+        children.push(h('div', {
+          key: 'brand-micro',
+          style: {
+            position: 'absolute',
+            left: 'calc(' + (sidebarRect.right - 12) + 'px)',
+            top: (sidebarRect.top + 14) + 'px',
+            transform: 'translateX(-100%)', textAlign: 'right',
+            pointerEvents: 'none', userSelect: 'none',
+          },
+        },
+          copy.statusLabel ? h('div', {
+            style: { fontFamily: 'var(--ds-font-family-code)', fontSize: '10px', letterSpacing: '0.22em', color: 'var(--dsw-alias-label-primary)', opacity: 0.8, fontWeight: 600 },
+          }, copy.statusLabel) : null,
+          copy.brandMicroline ? h('div', {
+            style: { marginTop: '4px', fontFamily: 'var(--ds-font-family-code)', fontSize: '7.5px', letterSpacing: '0.14em', color: 'var(--dsw-alias-label-tertiary)', opacity: 0.7 },
+          }, copy.brandMicroline) : null,
+        ))
+      }
+
+      if (sidebarRect && caps.includes('profileCard') && copy.profile) {
+        const cardW = Math.max(180, sidebarRect.width - 32)
+        children.push(h('div', {
+          key: 'profile-card',
+          style: {
+            position: 'absolute', left: (sidebarRect.left + 16) + 'px', top: ((brandRect ? brandRect.bottom + 8 : sidebarRect.top + 64)) + 'px', width: cardW + 'px',
+            boxSizing: 'border-box', padding: '10px 12px 12px',
+            background: 'rgba(247,248,247,0.92)', border: '1px solid rgba(28,28,31,0.45)',
+            clipPath: 'polygon(12px 0,100% 0,100% calc(100% - 12px),calc(100% - 12px) 100%,0 100%,0 12px)',
+            pointerEvents: 'none', userSelect: 'none',
+            display: 'flex', flexDirection: 'column', gap: '8px',
+          },
+        },
+          h('div', {
+            style: {
+              height: '132px', border: '1px solid rgba(28,28,31,0.18)',
+              backgroundImage: 'repeating-linear-gradient(45deg,rgba(28,28,31,0.05) 0 5px,transparent 5px 11px)',
+              display: 'grid', placeItems: 'center',
+            },
+          }, h('div', { style: { fontFamily: 'var(--ds-font-family-code)', fontSize: '9px', letterSpacing: '0.24em', color: 'var(--dsw-alias-label-tertiary)' } }, 'PORTRAIT')),
+          h('div', { style: { fontFamily: 'var(--dsw-font-family-brand)', fontSize: '26px', fontWeight: 700, lineHeight: 1.1, color: 'var(--dsw-alias-label-primary)', letterSpacing: '0.02em' } }, copy.profile.name),
+          copy.profile.subtitle ? h('div', { style: { fontSize: '11px', color: 'var(--dsw-alias-label-secondary)', lineHeight: 1.5 } }, copy.profile.subtitle) : null,
+          copy.profile.signature ? h('div', { style: { fontFamily: 'var(--ds-font-family-code)', fontSize: '16px', fontStyle: 'italic', color: 'var(--dsw-alias-label-tertiary)', opacity: 0.85 } }, copy.profile.signature) : null,
+          h('div', { style: { paddingTop: '6px', borderTop: '1px solid rgba(28,28,31,0.12)', display: 'flex', justifyContent: 'space-between' } },
+            h('span', { style: { fontFamily: 'var(--ds-font-family-code)', fontSize: '9px', letterSpacing: '0.2em', color: 'var(--dsw-alias-label-secondary)' } }, copy.profile.label || ''),
+            h('span', { style: { fontFamily: 'var(--ds-font-family-code)', fontSize: '9px', letterSpacing: '0.2em', color: 'var(--dsw-alias-label-tertiary)' } }, '/////'),
+          ),
+        ))
+      }
       decor.forEach((d, i) => {
         const anchor = anchors[d.anchor]
         if (!anchor) return
@@ -378,6 +432,8 @@ window.__ModuleLoader__.load({
       out.push(
         'div:has(> [data-slot="sidebar"]){background:' +
           tint('--dsw-specific-sidebar-fill', sidebarAlpha) + '!important}',
+        '[data-slot="sidebar"] > div > *:nth-child(3){margin-top:306px!important}',
+        '[data-slot="sidebar"] > div{overflow-y:auto;scrollbar-width:none}',
         // 会话态：不再整体加白/模糊，改成「左侧渐隐白纱」，右侧保持底图清晰
         'div:has(> [data-slot="main"]){background:linear-gradient(90deg,' +
           'rgba(255,255,255,' + centerAlpha + ') 0%,' +
