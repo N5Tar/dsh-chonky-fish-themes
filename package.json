@@ -1,0 +1,7 @@
+{
+  "name": "dsh-chonky-fish-themes",
+  "version": "0.0.0",
+  "private": true,
+  "description": "DSH skin theme plugin: engine + theme asset packs",
+  "type": "module"
+}
