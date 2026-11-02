@@ -258,7 +258,7 @@
     "composerMinHeight": 178,
     "composerPaddingY": 24,
     "composerPaddingX": 28,
-    "composerGlassAlpha": 0.22
+    "composerGlassAlpha": 0.1
   },
   "copy": {
     "mode": "official",
