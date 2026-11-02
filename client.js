@@ -148,6 +148,7 @@ window.__ModuleLoader__.load({
       const lineSoft = isDark ? 'rgba(255,255,255,0.16)' : 'rgba(28,28,31,0.18)'
       const cardFill = isDark ? 'rgba(14,16,20,0.82)' : 'rgba(247,248,247,0.92)'
       const copy = (theme && theme.copy) || {}
+      const RAIL_W = 34
       const sidebarRect = rectOf('div:has(> [data-slot="sidebar"])')
       const brandRect = rectOf('[class*="_logoRow"]')
       const caps = Array.isArray(theme && theme.capabilities) ? theme.capabilities : []
@@ -178,14 +179,47 @@ window.__ModuleLoader__.load({
         ))
       }
 
+      // 侧栏左缘机械装甲导轨（SVG 路径，参考 dsh-mechanical-sidebar-demo）
+      if (sidebarRect && caps.includes('profileCard')) {
+        const rail = h('svg', {
+          key: 'armor-rail',
+          viewBox: '0 0 46 941', preserveAspectRatio: 'none',
+          width: RAIL_W, height: '100%', style: { display: 'block' },
+        },
+          h('defs', null, h('linearGradient', { id: 'cfSteel', x1: '0', x2: '1' },
+            h('stop', { offset: '0', stopColor: '#494e54' }),
+            h('stop', { offset: '0.36', stopColor: '#25292e' }),
+            h('stop', { offset: '1', stopColor: '#15171a' }),
+          )),
+          h('path', { fill: 'rgba(13,15,19,0.23)', d: 'M0 0 H41 L22 22 V70 L52 86 V242 L22 258 V311 L41 325 V664 L24 681 V767 L0 790 Z', transform: 'translate(3 1)' }),
+          h('path', { fill: 'url(#cfSteel)', d: 'M0 0 H37 L17 20 V72 L47 90 V238 L17 255 V312 L35 326 V664 L19 680 V767 L17 786 V915 L35 941 H0 Z' }),
+          h('path', { fill: '#181b20', d: 'M0 0 H29 L12 18 V74 L42 93 V236 L13 252 V312 L30 328 V659 L14 677 V763 L14 779 V914 L27 940 H0 Z' }),
+          h('path', { fill: '#292d32', d: 'M17 21 L24 14 L24 72 L47 90 L47 102 L16 78 Z M18 253 L29 246 L29 310 L35 326 L35 350 L18 314 Z M17 681 L27 670 L27 757 L18 767 Z' }),
+          h('path', { fill: '#373c42', opacity: '0.6', d: 'M42 94 V236 L38 241 V93 Z M29 330 H35 V661 L29 668 Z' }),
+          h('path', { fill: 'none', stroke: '#90969c', strokeWidth: '1.2', d: 'M36 1 L16 19 V71 L46 90 M46 238 L16 255 V312 L35 326 M35 664 L18 680 V766 L17 786' }),
+          h('path', { fill: 'none', stroke: '#5c646c', strokeWidth: '1', opacity: '0.9', d: 'M20 29 V66 M43 109 V171 M43 179 V217 M19 265 V302 M32 341 V374 M31 641 V656 M20 691 V722 M20 739 V758' }),
+          h('path', { fill: '#717b85', opacity: '0.76', d: 'M23 684 L29 676 L29 690 L23 700 Z M23 748 L29 740 V763 L23 767 Z' }),
+          h('path', { fill: '#adb5bd', d: 'M24 687 L25 685 V697 L24 698 Z M24 751 L25 748 V757 L24 758 Z' }),
+          h('path', { fill: 'rgba(225,229,231,0.45)', d: 'M18 704 L19 701 V729 L18 730 Z' }),
+        )
+        children.push(h('div', {
+          key: 'armor-rail-wrap',
+          style: {
+            position: 'absolute', left: sidebarRect.left + 'px', top: sidebarRect.top + 'px',
+            width: RAIL_W + 'px', height: sidebarRect.height + 'px',
+            pointerEvents: 'none', zIndex: 1, overflow: 'hidden',
+          },
+        }, rail))
+      }
+
       if (sidebarRect && caps.includes('profileCard') && copy.profile) {
-        const cardW = Math.max(180, sidebarRect.width - 32)
+        const cardW = Math.max(180, sidebarRect.width - RAIL_W - 24)
         const cardH = profilePortraitHeight
         children.push(h('div', {
           key: 'profile-card',
           ref: cardRef,
           style: {
-            position: 'absolute', left: (sidebarRect.left + 16) + 'px',
+            position: 'absolute', left: (sidebarRect.left + RAIL_W + 12) + 'px',
             top: ((brandRect ? brandRect.bottom + 8 : sidebarRect.top + 64)) + 'px',
             width: cardW + 'px', height: cardH + 'px',
             boxSizing: 'border-box', overflow: 'hidden',
@@ -200,6 +234,14 @@ window.__ModuleLoader__.load({
             backgroundRepeat: 'no-repeat',
           },
         },
+          // 右下条码带（参考 demo 的 avatar-stripes）
+          h('div', {
+            style: {
+              position: 'absolute', right: 0, bottom: 0, width: '72px', height: '9px',
+              background: 'repeating-linear-gradient(120deg,' + (isDark ? '#e8ecef' : '#14181d') + ' 0 7px,transparent 7px 13px)',
+              opacity: 0.85,
+            },
+          }),
           // 底部渐隐，保证文字在图上可读
           h('div', {
             style: {
@@ -555,6 +597,7 @@ window.__ModuleLoader__.load({
       out.push(
         'div:has(> [data-slot="sidebar"]){background:' +
           tint('--dsw-specific-sidebar-fill', sidebarAlpha) + '!important}',
+        '[data-slot="sidebar"] > div > *{margin-left:34px!important}',
         '[data-slot="sidebar"] > div > *:nth-child(3){margin-top:var(--cf-card-gap,236px)!important}',
         '[data-slot="sidebar"] > div{overflow-y:auto;scrollbar-width:none}',
         'div:has(> [data-slot="sidebar.workspaces"]){flex:1 1 auto!important;min-height:280px!important;' +
