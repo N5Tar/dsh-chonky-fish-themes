@@ -258,11 +258,11 @@
     "composerMinHeight": 178,
     "composerPaddingY": 24,
     "composerPaddingX": 28,
-    "composerGlassAlpha": 0.78,
+    "composerGlassAlpha": 0.12,
     "composerGlassInset": 10,
-    "composerBlur": 11,
-    "chatGlassAlpha": 0.78,
-    "chatGlassBlur": 11,
+    "composerBlur": 1,
+    "chatGlassAlpha": 0.12,
+    "chatGlassBlur": 1,
     "artOpacity": 1
   },
   "copy": {

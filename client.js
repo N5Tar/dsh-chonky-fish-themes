@@ -113,12 +113,12 @@ window.__ModuleLoader__.load({
     /* ---- 透明度联动控件（完全对齐 demo .composer-tune / .tune-tab / .tune-panel） ---- */
     function readTunePct() {
       try {
-        const saved = JSON.parse(localStorage.getItem('cf-glass-v3') || 'null')
+        const saved = JSON.parse(localStorage.getItem('cf-glass-v4') || 'null')
         if (saved && typeof saved.transparency === 'number') {
           return Math.max(0, Math.min(100, Math.round(saved.transparency)))
         }
       } catch (e) {}
-      return 22
+      return 88
     }
     function applyTunePct(pct) {
       const alpha = 1 - pct / 100
@@ -128,7 +128,7 @@ window.__ModuleLoader__.load({
       root.setProperty('--cf-chat-alpha', String(alpha))
       root.setProperty('--cf-composer-blur', blur + 'px')
       root.setProperty('--cf-chat-blur', blur + 'px')
-      try { localStorage.setItem('cf-glass-v3', JSON.stringify({ transparency: pct })) } catch (e) {}
+      try { localStorage.setItem('cf-glass-v4', JSON.stringify({ transparency: pct })) } catch (e) {}
     }
     function GlassControl(props) {
       const [pct, setPct] = React.useState(readTunePct)
@@ -491,7 +491,6 @@ window.__ModuleLoader__.load({
       const composerRect = rectOf('[data-composer-card]')
       children.push(h(GlassControl, {
         key: 'glass-control', rect: composerRect, ink, inkSoft, lineClr,
-        defaultPct: Math.round(num(theme && theme.geometry && theme.geometry.composerGlassAlpha, 0.78) * 100),
       }))
 
       return h('div', {
