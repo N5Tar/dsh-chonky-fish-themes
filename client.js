@@ -64,6 +64,14 @@ window.__ModuleLoader__.load({
 
       const bg = assetAvailable['bg.main'] ? assetUrl(theme.assets && theme.assets['bg.main']) : null
       const noise = available.assets && available.assets.noise ? assetUrl(theme.assets && theme.assets.noise) : null
+      const frame = assetAvailable['composer.frame']
+        ? assetUrl(theme.assets && theme.assets['composer.frame'])
+        : null
+      const grain = assetAvailable['composer.grain']
+        ? assetUrl(theme.assets && theme.assets['composer.grain'])
+        : null
+      const frameSlice = num(geometry.composerFrameSlice, 96)
+      const frameWidth = num(geometry.composerFrameWidth, 26)
 
       const out = []
 
@@ -119,7 +127,28 @@ window.__ModuleLoader__.load({
       )
 
       /* --- composer card shape ------------------------------------------------- */
-      if (chamfer > 0) {
+      if (frame) {
+        // 素材外框：9-slice，内容叠在内部；垫板/切角由素材自身表达
+        out.push(
+          '[data-composer-card]{' +
+            'position:relative;isolation:isolate;' +
+            'border:0 solid transparent!important;border-radius:0!important;' +
+            'border-image-source:url("' + frame + '");' +
+            'border-image-slice:' + frameSlice + ';' +
+            'border-image-width:' + frameWidth + 'px;' +
+            'border-image-repeat:stretch;border-image-outset:0;' +
+            'background-color:var(--dsw-specific-input-major);' +
+            'box-shadow:none!important;clip-path:none!important;filter:none!important' +
+            '}',
+        )
+        if (grain) {
+          out.push(
+            '[data-composer-card]::after{content:"";position:absolute;inset:0;pointer-events:none;' +
+              'background-image:url("' + grain + '");background-size:256px 256px;' +
+              'background-repeat:repeat;mix-blend-mode:multiply;opacity:1}',
+          )
+        }
+      } else if (chamfer > 0) {
         const c = chamfer
         out.push(
           '[data-composer-card]{' +

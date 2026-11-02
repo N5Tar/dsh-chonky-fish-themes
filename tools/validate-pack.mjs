@@ -36,12 +36,14 @@ const SLOT_RULES = {
   signature: { required: false, ext: ['.svg'], maxBytes: 8 * 1024 },
   'decor.hud': { required: false, ext: ['.svg'], maxBytes: 40 * 1024 },
   noise: { required: false, ext: ['.png'], maxBytes: 8 * 1024 },
+  'composer.frame': { required: false, ext: ['.png'], maxBytes: 300 * 1024 },
+  'composer.grain': { required: false, ext: ['.png'], maxBytes: 24 * 1024 },
   icon: { required: true, ext: ['.svg', '.png', '.webp'], maxBytes: 256 * 1024 },
 }
 
 const CAPABILITIES = new Set([
   'profileCard', 'rightRail', 'bottomBar', 'heroDecor',
-  'hudLayer', 'noiseOverlay', 'copyReplace', 'logoReplace', 'customCss',
+  'hudLayer', 'noiseOverlay', 'copyReplace', 'logoReplace', 'customCss', 'composerFrame',
 ])
 
 const DECOR_KINDS = new Set(['text', 'watermark', 'rail'])
@@ -66,6 +68,8 @@ const GEOMETRY_RULES = {
   composerPlateOffset: { type: 'number', min: 0, max: 32 },
   noiseOpacity: { type: 'number', min: 0, max: 0.2 },
   darkScrim: { type: 'number', min: 0, max: 0.9 },
+  composerFrameSlice: { type: 'number', min: 16, max: 160 },
+  composerFrameWidth: { type: 'number', min: 8, max: 64 },
 }
 
 const RECOMMENDED_TOKENS = [
@@ -409,6 +413,7 @@ const needAsset = (cap, slot) => {
 }
 needAsset('hudLayer', 'decor.hud')
 needAsset('noiseOverlay', 'noise')
+needAsset('composerFrame', 'composer.frame')
 needAsset('profileCard', 'portrait')
 if (caps.has('rightRail') && !hasDecor('rail')) w('decor', '能力 rightRail 已声明，但没有 rail 装饰条目')
 if (caps.has('bottomBar') && !hasDecor('watermark')) w('decor', '能力 bottomBar 已声明，但没有 watermark 装饰条目')
@@ -418,6 +423,7 @@ if (caps.has('heroDecor') && !decor.some((d) => isObject(d) && d.anchor === 'her
 if (assets.portrait && !caps.has('profileCard')) w('assets.portrait', '存在 portrait 素材但未声明 profileCard 能力')
 if (assets['decor.hud'] && !caps.has('hudLayer')) w('assets.decor.hud', '存在 decor.hud 素材但未声明 hudLayer 能力')
 if (assets.noise && !caps.has('noiseOverlay')) w('assets.noise', '存在 noise 素材但未声明 noiseOverlay 能力')
+if (assets['composer.frame'] && !caps.has('composerFrame')) w('assets.composer.frame', '存在 composer.frame 素材但未声明 composerFrame 能力')
 
 /* -------------------------------- 输出 --------------------------------- */
 
