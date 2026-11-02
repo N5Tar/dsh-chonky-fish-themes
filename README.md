@@ -40,7 +40,7 @@ node --check client.js && node --check index.js
 安装后：**设置 → 通用设置 → 主题**，两个选项：
 
 - **默认**：注销引擎注入的样式与 token 覆盖，回到 DSH 原生外观（无需重启）；
-- **大肥鱼·轻甲**：重新注入皮肤（配色、底图、玻璃、装甲导轨、资料卡）。
+- **大肥鱼·白鲨轻甲**：重新注入皮肤（配色、底图、玻璃、装甲导轨、资料卡）。
 
 选择存在 `localStorage['cf-theme-mode']`（`mecha` 缺省 / `default`），刷新后保持。切换走的路径是 `ctx.locale` + `settings.general.item` 槽位，不修改宿主文件。
 
