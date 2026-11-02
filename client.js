@@ -237,9 +237,10 @@ window.__ModuleLoader__.load({
         'div:has(> [data-slot="sidebar"]){background:' +
           tint('--dsw-specific-sidebar-fill', sidebarAlpha) + '!important}',
         'div:has(> [data-slot="main"]){background:' +
-          tint('--dsw-alias-bg-base', centerAlpha) + '!important}',
+          tint('--dsw-alias-bg-base', centerAlpha) + '!important;' +
+          'backdrop-filter:blur(16px) saturate(1.06)}',
         'div:has(> [data-slot="main"]):has([data-content-phase="hero"]){background:' +
-          tint('--dsw-alias-bg-base', heroCenterAlpha) + '!important}',
+          tint('--dsw-alias-bg-base', heroCenterAlpha) + '!important;backdrop-filter:none!important}',
         'div:has(> [data-slot="rightbar"]){background:transparent!important}',
       )
 
