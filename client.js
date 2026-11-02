@@ -180,36 +180,45 @@ window.__ModuleLoader__.load({
 
       if (sidebarRect && caps.includes('profileCard') && copy.profile) {
         const cardW = Math.max(180, sidebarRect.width - 32)
+        const cardH = profilePortraitHeight
         children.push(h('div', {
           key: 'profile-card',
           ref: cardRef,
           style: {
-            position: 'absolute', left: (sidebarRect.left + 16) + 'px', top: ((brandRect ? brandRect.bottom + 8 : sidebarRect.top + 64)) + 'px', width: cardW + 'px',
-            boxSizing: 'border-box', padding: '10px 12px 12px',
-            background: cardFill, border: '1px solid ' + lineClr,
+            position: 'absolute', left: (sidebarRect.left + 16) + 'px',
+            top: ((brandRect ? brandRect.bottom + 8 : sidebarRect.top + 64)) + 'px',
+            width: cardW + 'px', height: cardH + 'px',
+            boxSizing: 'border-box', overflow: 'hidden',
+            border: '1px solid ' + lineClr,
             clipPath: 'polygon(12px 0,100% 0,100% calc(100% - 12px),calc(100% - 12px) 100%,0 100%,0 12px)',
             pointerEvents: 'none', userSelect: 'none',
-            display: 'flex', flexDirection: 'column', gap: '8px',
+            backgroundImage: portraitUrl
+              ? 'url("' + portraitUrl + '")'
+              : 'repeating-linear-gradient(45deg,rgba(28,28,31,0.05) 0 5px,transparent 5px 11px)',
+            backgroundSize: portraitUrl ? ((portraitZoom <= 100 ? 'cover' : portraitZoom + '% auto')) : 'auto',
+            backgroundPosition: portraitUrl ? ('center ' + portraitFocusY + '%') : 'center',
+            backgroundRepeat: 'no-repeat',
           },
         },
+          // 底部渐隐，保证文字在图上可读
           h('div', {
             style: {
-              height: profilePortraitHeight + 'px', border: portraitUrl ? '0' : ('1px solid ' + lineSoft),
-              backgroundImage: portraitUrl
-                ? 'url("' + portraitUrl + '")'
-                : 'repeating-linear-gradient(45deg,rgba(28,28,31,0.05) 0 5px,transparent 5px 11px)',
-              backgroundSize: !portraitUrl || portraitZoom <= 100 ? 'cover' : (portraitZoom + '% auto'),
-              backgroundPosition: portraitUrl ? ('center ' + portraitFocusY + '%') : 'center',
-              backgroundRepeat: 'no-repeat',
-              display: 'grid', placeItems: 'center',
+              position: 'absolute', inset: 0,
+              backgroundImage: isDark
+                ? 'linear-gradient(180deg,rgba(14,16,20,0) 28%,rgba(14,16,20,0.88) 72%,rgba(14,16,20,0.96) 100%)'
+                : 'linear-gradient(180deg,rgba(255,255,255,0) 28%,rgba(255,255,255,0.90) 70%,rgba(255,255,255,0.97) 100%)',
             },
-          }, portraitUrl ? null : h('div', { style: { fontFamily: 'var(--ds-font-family-code)', fontSize: '9px', letterSpacing: '0.24em', color: inkFaint } }, 'PORTRAIT')),
-          h('div', { style: { fontFamily: 'var(--dsw-font-family-brand)', fontSize: '24px', fontWeight: 700, lineHeight: 1.1, color: ink, letterSpacing: '0.02em' } }, copy.profile.name),
-          copy.profile.subtitle ? h('div', { style: { fontSize: '11px', color: inkSoft, lineHeight: 1.5 } }, copy.profile.subtitle) : null,
-          copy.profile.signature ? h('div', { style: { fontFamily: '"Snell Roundhand", "HanziPen SC", "Hannotate SC", "Bradley Hand", cursive', fontSize: '21px', fontStyle: 'normal', letterSpacing: '0.01em', color: inkSoft, opacity: 0.9, marginTop: '-2px' } }, copy.profile.signature) : null,
-          h('div', { style: { paddingTop: '6px', borderTop: '1px solid ' + (isDark ? 'rgba(255,255,255,0.14)' : 'rgba(28,28,31,0.12)'), display: 'flex', justifyContent: 'space-between' } },
-            h('span', { style: { fontFamily: 'var(--ds-font-family-code)', fontSize: '9px', letterSpacing: '0.2em', color: inkSoft } }, copy.profile.label || ''),
-            h('span', { style: { fontFamily: 'var(--ds-font-family-code)', fontSize: '9px', letterSpacing: '0.2em', color: inkFaint } }, '/////'),
+          }),
+          h('div', {
+            style: { position: 'absolute', left: '12px', right: '12px', bottom: '9px', display: 'flex', flexDirection: 'column', gap: '2px' },
+          },
+            h('div', { style: { fontFamily: 'var(--dsw-font-family-brand)', fontSize: '23px', fontWeight: 700, lineHeight: 1.1, color: ink, letterSpacing: '0.02em' } }, copy.profile.name),
+            copy.profile.subtitle ? h('div', { style: { fontSize: '10.5px', color: inkSoft, lineHeight: 1.4 } }, copy.profile.subtitle) : null,
+            copy.profile.signature ? h('div', { style: { fontFamily: '"Snell Roundhand", "HanziPen SC", "Hannotate SC", "Bradley Hand", cursive', fontSize: '19px', color: inkSoft, opacity: 0.92, marginTop: '-1px' } }, copy.profile.signature) : null,
+            h('div', { style: { paddingTop: '4px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' } },
+              h('span', { style: { fontFamily: 'var(--ds-font-family-code)', fontSize: '8.5px', letterSpacing: '0.2em', color: inkSoft } }, copy.profile.label || ''),
+              h('span', { style: { fontFamily: 'var(--ds-font-family-code)', fontSize: '8.5px', letterSpacing: '0.2em', color: inkFaint } }, '/////'),
+            ),
           ),
         ))
       }
@@ -570,19 +579,25 @@ window.__ModuleLoader__.load({
       const edgeAsset = (theme._available && theme._available.assets && theme._available.assets['decor.sidebarEdge'] && theme.assets && theme.assets['decor.sidebarEdge'])
         ? 'url("' + ROUTE + theme.assets['decor.sidebarEdge'] + '")'
         : null
-      const edgeSvgRaw = '<svg xmlns="http://www.w3.org/2000/svg" width="12" height="900" viewBox="0 0 12 900" preserveAspectRatio="none">' +
+      const edgeSvgRaw = '<svg xmlns="http://www.w3.org/2000/svg" width="9" height="1600" viewBox="0 0 9 1600">' +
         '<g fill="#202023">' +
-        '<path d="M0 0h12v48L0 96z"/>' +
-        '<path d="M0 246h7l5 14v34l-5 14H0z"/>' +
-        '<path d="M0 612h6l6 18v30l-6 18H0z"/>' +
-        '<path d="M0 806l12-34v128H0z"/>' +
+        '<path d="M0 0h9v3L0 16z"/>' +
+        '<rect x="0" y="238" width="4" height="2"/><rect x="0" y="242" width="2" height="10"/>' +
+        '<path d="M0 520h5l3 8v10l-3 8H0z"/>' +
+        '<rect x="0" y="756" width="2" height="14"/><rect x="0" y="774" width="4" height="2"/>' +
+        '<path d="M0 1178h6l3 10v12l-3 10H0z"/>' +
+        '<rect x="0" y="1478" width="3" height="2"/><rect x="0" y="1484" width="2" height="12"/>' +
+        '<path d="M0 1582h9v3L0 1598z"/>' +
+        '</g>' +
+        '<g fill="none" stroke="#6b6b70" stroke-width="0.5" opacity="0.45">' +
+        '<path d="M6.5 60v120M6.5 300v90M6.5 560v120M6.5 820v120M6.5 1060v90M6.5 1240v100M6.5 1400v60"/>' +
         '</g></svg>'
       const edgeSvg = encodeURIComponent(edgeSvgRaw)
       out.push(
         'div:has(> [data-slot="sidebar"]){position:relative!important}',
-        'div:has(> [data-slot="sidebar"])::before{content:"";position:absolute;left:0;top:0;bottom:0;width:12px;' +
+        'div:has(> [data-slot="sidebar"])::before{content:"";position:absolute;left:0;top:0;bottom:0;width:9px;' +
           'z-index:3;pointer-events:none;' +
-          'background:' + (edgeAsset || ('url("data:image/svg+xml;charset=utf-8,' + edgeSvg + '")')) + ' left top/12px 100% no-repeat}',
+          'background:' + (edgeAsset || ('url("data:image/svg+xml;charset=utf-8,' + edgeSvg + '")')) + ' left top/9px 100% no-repeat}',
       )
 
       /* --- composer seat：宿主默认用 bg-base 渐隐盖住卡片下方，改为半透明白纱 --- */
