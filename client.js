@@ -78,6 +78,44 @@ window.__ModuleLoader__.load({
       add('sidebarCol', document.querySelector('div:has(> [data-slot="sidebar"])'))
       add('mainCol', document.querySelector('div:has(> [data-slot="main"])'))
       add('sidebarSlot', document.querySelector('[data-slot="sidebar"]'))
+
+      // 扫描「接近满屏且有不透明背景」的元素——找出盖住底图的层
+      const vw = innerWidth, vh = innerHeight
+      const opaqueLayers = []
+      for (const el of document.querySelectorAll('div,main,section,header,footer,aside,nav')) {
+        const r = el.getBoundingClientRect()
+        if (r.width * r.height < 0.5 * vw * vh) continue
+        const cs = getComputedStyle(el)
+        const bg = cs.backgroundColor
+        const bgImg = String(cs.backgroundImage)
+        if ((bg !== 'rgba(0, 0, 0, 0)' && bg !== 'transparent') || bgImg !== 'none') {
+          opaqueLayers.push({
+            cls: String(el.className || '').slice(0, 50),
+            size: Math.round(r.width) + 'x' + Math.round(r.height),
+            bg, bgImg: bgImg.slice(0, 60),
+            pos: cs.position, z: cs.zIndex, op: cs.opacity,
+          })
+        }
+        if (opaqueLayers.length >= 8) break
+      }
+      out.push({ label: 'opaqueLayers', count: opaqueLayers.length, layers: opaqueLayers })
+
+      // composer 卡片的祖先链
+      const chain = []
+      let cur = document.querySelector('[data-composer-card]')
+      while (cur && chain.length < 14) {
+        const cs = getComputedStyle(cur)
+        const r = cur.getBoundingClientRect()
+        chain.push({
+          cls: String(cur.className || '').slice(0, 46),
+          attrs: Array.from(cur.attributes).filter((a) => a.name.startsWith('data-')).map((a) => a.name + '=' + a.value).slice(0, 4).join(' ').slice(0, 70),
+          size: Math.round(r.width) + 'x' + Math.round(r.height),
+          bg: cs.backgroundColor, bgImg: String(cs.backgroundImage).slice(0, 40),
+          op: cs.opacity, iso: cs.isolation, pos: cs.position,
+        })
+        cur = cur.parentElement
+      }
+      out.push({ label: 'ancestorChain', chain })
       return out
     }
 
@@ -179,6 +217,8 @@ window.__ModuleLoader__.load({
             'background:url("' + bg + '") center/cover no-repeat!important}',
           'html[data-platform="darwin"],html[data-platform="darwin"] body{background-color:transparent!important}',
           'html body,#root{background-color:transparent!important}',
+          // 会话根容器（宿主默认 bg-base 不透明）→ 透明，让底图透出
+          'div[data-phase]{background-color:transparent!important}',
           // 三列之外的 frame 本身也要透明，否则整块底图被 frame 底色盖住
           'div:has(> [data-rightbar-col]){background:transparent!important}',
         )
@@ -210,7 +250,9 @@ window.__ModuleLoader__.load({
           '[data-composer-card]{' +
             'position:relative;isolation:isolate;' +
             'border:0!important;border-radius:0!important;box-sizing:border-box;' +
-            'background-image:url("' + frameBg + '"),linear-gradient(180deg,#ffffff,#f3f5f7)!important;' +
+            'background-image:url("' + frameBg + '"),linear-gradient(180deg,rgba(255,255,255,0.80),rgba(244,246,247,0.72))!important;' +
+            'background-color:rgba(255,255,255,0.24)!important;' +
+            'backdrop-filter:blur(20px) saturate(1.1);' +
             'background-size:100% 100%,auto!important;background-position:center,0 0!important;' +
             'background-repeat:no-repeat!important;background-origin:border-box!important;' +
             'background-clip:border-box!important;' +
