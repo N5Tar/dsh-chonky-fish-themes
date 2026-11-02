@@ -20,6 +20,11 @@ window.__ModuleLoader__.load({
     const DIAG_ROUTE = '/skin/__diag'
     const LOG = '[chonky-fish-themes]'
 
+    /** 重量级诊断（全量 DOM 扫描）默认关闭；排障时在控制台执行 localStorage.setItem('cf-diag','1') 后刷新。 */
+    function diagHeavy() {
+      try { return localStorage.getItem('cf-diag') === '1' } catch (e) { return false }
+    }
+
     function num(value, fallback) {
       return typeof value === 'number' && Number.isFinite(value) ? value : fallback
     }
@@ -111,33 +116,53 @@ window.__ModuleLoader__.load({
     }
 
     /* ---- 透明度联动控件（完全对齐 demo .composer-tune / .tune-tab / .tune-panel） ---- */
-    function readTunePct() {
-      try {
-        const saved = JSON.parse(localStorage.getItem('cf-glass-v4') || 'null')
-        if (saved && typeof saved.transparency === 'number') {
-          return Math.max(0, Math.min(100, Math.round(saved.transparency)))
-        }
-      } catch (e) {}
-      return 88
+    const GLASS_KEY = 'cf-glass-transparency'
+
+    /** 主题包给出的默认值：composer 玻璃决定联动基准。 */
+    function themeGlass(theme) {
+      const g = (theme && theme.geometry) || {}
+      const alpha = num(g.composerGlassAlpha, 0.78)
+      return {
+        pct: Math.round((1 - alpha) * 100),
+        alpha,
+        blur: num(g.composerBlur, 11),
+        inset: num(g.composerGlassInset, 10),
+      }
     }
-    function applyTunePct(pct) {
+
+    /** 用户覆盖（只在用户真的调过时存在）。 */
+    function storedGlassPct() {
+      try {
+        const v = Number(localStorage.getItem(GLASS_KEY))
+        if (Number.isFinite(v)) return Math.max(0, Math.min(100, Math.round(v)))
+      } catch (e) {}
+      return null
+    }
+
+    function glassState(theme) {
+      const base = themeGlass(theme)
+      const pct = storedGlassPct()
+      if (pct === null) return { pct: base.pct, alpha: base.alpha, blur: base.blur, overridden: false }
       const alpha = 1 - pct / 100
-      const blur = Math.round(12 * alpha)
-      const root = document.documentElement.style
-      root.setProperty('--cf-composer-alpha', String(alpha))
-      root.setProperty('--cf-chat-alpha', String(alpha))
-      root.setProperty('--cf-composer-blur', blur + 'px')
-      root.setProperty('--cf-chat-blur', blur + 'px')
-      try { localStorage.setItem('cf-glass-v4', JSON.stringify({ transparency: pct })) } catch (e) {}
+      return { pct, alpha, blur: Math.max(1, Math.round(12 * alpha)), overridden: true }
     }
     function GlassControl(props) {
-      const [pct, setPct] = React.useState(readTunePct)
+      const [pct, setPct] = React.useState(() => glassState(props.theme).pct)
       const [open, setOpen] = React.useState(false)
       const wrapRef = React.useRef(null)
       const closeTimer = React.useRef(null)
       const cancelClose = () => { if (closeTimer.current) { clearTimeout(closeTimer.current); closeTimer.current = null } }
       const scheduleClose = () => { cancelClose(); closeTimer.current = setTimeout(() => setOpen(false), 420) }
-      React.useEffect(() => { applyTunePct(pct) }, [pct])
+      React.useEffect(() => {
+        const root = document.documentElement.style
+        const alpha = 1 - pct / 100
+        const blur = Math.max(1, Math.round(12 * alpha)) + 'px'
+        root.setProperty('--cf-composer-alpha', String(alpha))
+        root.setProperty('--cf-chat-alpha', String(alpha))
+        root.setProperty('--cf-composer-blur', blur)
+        root.setProperty('--cf-chat-blur', blur)
+        try { localStorage.setItem(GLASS_KEY, String(pct)) } catch (e) {}
+      }, [pct])
       React.useEffect(() => {
         if (!open) return undefined
         const onPointerDown = (e) => { if (wrapRef.current && !wrapRef.current.contains(e.target)) setOpen(false) }
@@ -152,9 +177,11 @@ window.__ModuleLoader__.load({
       }, [open])
       const r = props.rect
       if (!r) return null
-      const width = Math.min(342, Math.max(240, r.width - 118))
-      const left = r.left + r.width / 2 - width / 2
-      const top = r.top - 18
+      const copy = props.copy || {}
+      const width = Math.min(342, Math.max(200, r.width - 118))
+      const leftRaw = r.left + r.width / 2 - width / 2
+      const left = Math.max(8, Math.min(leftRaw, innerWidth - width - 8))
+      const top = Math.max(8, r.top - 18)
       const ink = '#48515a'
       const pctStyle = 'linear-gradient(90deg,#343b43 ' + pct + '%,#b9c0c5 ' + pct + '%)'
       return h('div', {
@@ -165,7 +192,7 @@ window.__ModuleLoader__.load({
       },
         h('button', {
           type: 'button',
-          'aria-label': open ? '收起透明度滑块' : '展开透明度滑块',
+          'aria-label': open ? (copy.collapse || '收起透明度滑块') : (copy.expand || '展开透明度滑块'),
           'aria-expanded': open,
           onClick: () => setOpen((v) => !v),
           style: {
@@ -230,10 +257,10 @@ window.__ModuleLoader__.load({
               h('circle', { cx: 10, cy: 10, r: 7.6 }),
               h('path', { d: 'M10 2.4v15.2a7.6 7.6 0 0 0 0-15.2Z', fill: ink, fillOpacity: 0.25, stroke: 'none' }),
             ),
-            h('label', { htmlFor: 'cf-tune-range', style: { fontSize: '11px', color: ink, whiteSpace: 'nowrap', letterSpacing: '0.08em', fontWeight: 650 } }, '透明度'),
+            h('label', { htmlFor: 'cf-tune-range', style: { fontSize: '11px', color: ink, whiteSpace: 'nowrap', letterSpacing: '0.08em', fontWeight: 650 } }, copy.label || '透明度'),
             h('input', {
               id: 'cf-tune-range', type: 'range', min: 0, max: 100, step: 1, value: pct,
-              'aria-label': '会话和 Composer 联动透明度，数值越大越透明',
+              'aria-label': copy.rangeLabel || '会话和 Composer 联动透明度，数值越大越透明',
               className: 'cf-tune-range',
               onChange: (e) => setPct(Number(e.target.value)),
               style: { flex: 1, minWidth: '32px', height: '3px', border: 0, appearance: 'none',
@@ -243,7 +270,7 @@ window.__ModuleLoader__.load({
               fontFamily: 'ui-monospace,SFMono-Regular,Consolas,monospace', fontSize: '11px', fontWeight: 650,
               color: '#465159', fontVariantNumeric: 'tabular-nums' } }, pct + '%'),
             h('button', {
-              type: 'button', 'aria-label': '收起透明度设置', title: '收起', onClick: () => setOpen(false),
+              type: 'button', 'aria-label': copy.collapseTitle || '收起透明度设置', title: copy.collapseTitle || '收起', onClick: () => setOpen(false),
               style: { width: '21px', height: '21px', display: 'grid', placeItems: 'center', padding: 0,
                 border: 0, background: 'transparent', color: '#6d777e', fontSize: '15px', lineHeight: 1,
                 cursor: 'pointer', opacity: 0.76 },
@@ -263,9 +290,17 @@ window.__ModuleLoader__.load({
         targets.forEach((t) => t.addEventListener('scroll', bump, { passive: true }))
         window.addEventListener('resize', bump)
         document.addEventListener('scroll', bump, true)
-        const id = setInterval(bump, 900)
+        // 布局变化（窗口尺寸、侧栏折叠、宿主重排）由观察器触发，不再靠定时轮询
+        let observer = null
+        try {
+          observer = new ResizeObserver(bump)
+          for (const sel of ['div:has(> [data-slot="sidebar"])', 'div:has(> [data-slot="main"])', '[data-composer-card]']) {
+            const el = document.querySelector(sel)
+            if (el) observer.observe(el)
+          }
+        } catch (e) {}
         return () => {
-          clearInterval(id)
+          if (observer) observer.disconnect()
           targets.forEach((t) => t.removeEventListener('scroll', bump))
           window.removeEventListener('resize', bump)
           document.removeEventListener('scroll', bump, true)
@@ -279,7 +314,7 @@ window.__ModuleLoader__.load({
         }
       })
       const decor = theme && Array.isArray(theme.decor) ? theme.decor : []
-      if (decor.length === 0) return null
+      if (!theme) return null
       const anchors = computeAnchors()
       const inHero = Boolean(document.querySelector('[data-content-phase="hero"]'))
       const children = []
@@ -288,8 +323,6 @@ window.__ModuleLoader__.load({
       const inkSoft = isDark ? 'rgba(240,242,245,0.55)' : 'rgba(28,28,31,0.55)'
       const inkFaint = isDark ? 'rgba(240,242,245,0.35)' : 'rgba(28,28,31,0.35)'
       const lineClr = isDark ? 'rgba(255,255,255,0.30)' : 'rgba(28,28,31,0.45)'
-      const lineSoft = isDark ? 'rgba(255,255,255,0.16)' : 'rgba(28,28,31,0.18)'
-      const cardFill = isDark ? 'rgba(14,16,20,0.82)' : 'rgba(247,248,247,0.92)'
       const copy = (theme && theme.copy) || {}
       const RAIL_W = 34
       const sidebarRect = rectOf('div:has(> [data-slot="sidebar"])')
@@ -489,14 +522,22 @@ window.__ModuleLoader__.load({
         }
       })
       const composerRect = rectOf('[data-composer-card]')
-      children.push(h(GlassControl, {
-        key: 'glass-control', rect: composerRect, ink, inkSoft, lineClr,
-      }))
+      const tuneCopy = copy.tune || {}
 
-      return h('div', {
-        style: { position: 'fixed', inset: 0, pointerEvents: 'none', zIndex: 5, overflow: 'hidden' },
-        'aria-hidden': true,
-      }, children)
+      return h(React.Fragment, null,
+        h('div', {
+          style: { position: 'fixed', inset: 0, pointerEvents: 'none', zIndex: 5, overflow: 'hidden' },
+          'aria-hidden': true,
+        }, children),
+        h('div', {
+          key: 'skin-controls',
+          style: { position: 'fixed', inset: 0, pointerEvents: 'none', zIndex: 6, overflow: 'hidden' },
+          role: 'group',
+          'aria-label': tuneCopy.groupLabel || '界面透明度设置',
+        }, h(GlassControl, {
+          key: 'glass-control', rect: composerRect, theme, ink, inkSoft, lineClr, copy: tuneCopy,
+        })),
+      )
     }
 
     function collectCardInfo() {
@@ -710,6 +751,22 @@ window.__ModuleLoader__.load({
       const frame = document.querySelector('[data-conversation-content] [class*="_frame"]')
       if (frame) walkAll(frame, 0)
       out.push({ label: 'messageTree', count: tree.length, tree })
+      try {
+        const btns = Array.from(document.querySelectorAll('button[aria-label*="透明度"]'))
+        out.push({ label: 'tuneCount', count: btns.length,
+          rects: btns.map((b) => { const q = b.getBoundingClientRect(); return [Math.round(q.left), Math.round(q.top), Math.round(q.width), Math.round(q.height)] }) })
+        const btn = btns[0]
+        if (btn) {
+          const r = btn.getBoundingClientRect()
+          const cx = Math.round(r.left + r.width / 2)
+          const cy = Math.round(r.top + r.height / 2)
+          const hit = document.elementFromPoint(cx, cy)
+          out.push({ label: 'tuneHit', rect: [Math.round(r.left), Math.round(r.top), Math.round(r.width), Math.round(r.height)],
+            point: [cx, cy], hitTag: hit ? hit.tagName.toLowerCase() : null, hitLabel: hit ? (hit.getAttribute('aria-label') || '') : null })
+        } else {
+          out.push({ label: 'tuneHit', rect: null })
+        }
+      } catch (e) { out.push({ label: 'tuneHit', error: String(e) }) }
       out.push({ label: 'sidebarScroll', col: sbInfo(sbCol, 'col'), root: sbInfo(sbRoot, 'root'), region: sbInfo(document.querySelector('[data-slot="sidebar.workspaces"]'), 'region') })
       out.push({ label: 'phase', hero: Boolean(document.querySelector('[data-content-phase="hero"]')), phaseEl: (document.querySelector('[data-content-phase]') || {}).getAttribute ? document.querySelector('[data-content-phase]').getAttribute('data-content-phase') : null })
       return out
@@ -781,20 +838,10 @@ window.__ModuleLoader__.load({
       const composerMinHeight = num(geometry.composerMinHeight, 178)
       const composerPaddingY = num(geometry.composerPaddingY, 24)
       const composerPaddingX = num(geometry.composerPaddingX, 28)
-      const composerGlassAlpha = num(geometry.composerGlassAlpha, 0.78)
+      const glass = glassState(theme)
+      const glassAlpha = glass.alpha
+      const glassBlur = glass.blur
       const composerGlassInset = num(geometry.composerGlassInset, 10)
-      const composerBlur = num(geometry.composerBlur, 11)
-      const chatGlassAlpha = num(geometry.chatGlassAlpha, 0.78)
-      const chatGlassBlur = num(geometry.chatGlassBlur, 11)
-      let glassAlpha = composerGlassAlpha
-      let glassBlur = composerBlur
-      try {
-        const saved = JSON.parse(localStorage.getItem('cf-glass-v2') || 'null')
-        if (saved && typeof saved.alpha === 'number') {
-          glassAlpha = Math.min(1, Math.max(0, saved.alpha))
-          glassBlur = Math.round(12 * glassAlpha)
-        }
-      } catch (e) {}
       const artOpacity = num(geometry.artOpacity, 1)
       const frameBg = assetAvailable['composer.frameBg']
         ? assetUrl(theme.assets && theme.assets['composer.frameBg'])
@@ -886,31 +933,6 @@ window.__ModuleLoader__.load({
           'rgba(255,255,255,0.72) 0%,rgba(255,255,255,0.45) 55%,rgba(255,255,255,0.12) 100%)!important}}',
       )
 
-      /* --- 侧栏左缘机械缺口装饰（SVG data URI，无需素材） --- */
-      const edgeAsset = (theme._available && theme._available.assets && theme._available.assets['decor.sidebarEdge'] && theme.assets && theme.assets['decor.sidebarEdge'])
-        ? 'url("' + ROUTE + theme.assets['decor.sidebarEdge'] + '")'
-        : null
-      const edgeSvgRaw = '<svg xmlns="http://www.w3.org/2000/svg" width="9" height="1600" viewBox="0 0 9 1600">' +
-        '<g fill="#202023">' +
-        '<path d="M0 0h9v3L0 16z"/>' +
-        '<rect x="0" y="238" width="4" height="2"/><rect x="0" y="242" width="2" height="10"/>' +
-        '<path d="M0 520h5l3 8v10l-3 8H0z"/>' +
-        '<rect x="0" y="756" width="2" height="14"/><rect x="0" y="774" width="4" height="2"/>' +
-        '<path d="M0 1178h6l3 10v12l-3 10H0z"/>' +
-        '<rect x="0" y="1478" width="3" height="2"/><rect x="0" y="1484" width="2" height="12"/>' +
-        '<path d="M0 1582h9v3L0 1598z"/>' +
-        '</g>' +
-        '<g fill="none" stroke="#6b6b70" stroke-width="0.5" opacity="0.45">' +
-        '<path d="M6.5 60v120M6.5 300v90M6.5 560v120M6.5 820v120M6.5 1060v90M6.5 1240v100M6.5 1400v60"/>' +
-        '</g></svg>'
-      const edgeSvg = encodeURIComponent(edgeSvgRaw)
-      out.push(
-        'div:has(> [data-slot="sidebar"]){position:relative!important}',
-        'div:has(> [data-slot="sidebar"])::before{content:"";position:absolute;left:0;top:0;bottom:0;width:9px;' +
-          'z-index:3;pointer-events:none;' +
-          'background:' + (edgeAsset || ('url("data:image/svg+xml;charset=utf-8,' + edgeSvg + '")')) + ' left top/9px 100% no-repeat}',
-      )
-
       /* --- composer seat：宿主默认用 bg-base 渐隐盖住卡片下方，改为半透明白纱 --- */
       out.push(
         '[data-composer-seat]{background-image:linear-gradient(180deg,' +
@@ -930,9 +952,11 @@ window.__ModuleLoader__.load({
       out.push(
         '[data-composer-card]{position:relative!important}',
         ':root{--cf-composer-alpha:' + glassAlpha + ';--cf-composer-blur:' + glassBlur + 'px;' +
-          '--cf-chat-alpha:' + glassAlpha + ';--cf-chat-blur:' + glassBlur + 'px}',
+          '--cf-chat-alpha:' + glassAlpha + ';--cf-chat-blur:' + glassBlur + 'px;' +
+          '--cf-glass-rgb:247,248,248;--cf-chat-rgb:248,249,250}',
+        'body[data-ds-dark-theme]{--cf-glass-rgb:22,25,29;--cf-chat-rgb:20,23,27}',
         '[data-composer-card]::before{content:"";position:absolute;inset:' + composerGlassInset + 'px;z-index:0;' +
-          'background:rgba(247,248,248,var(--cf-composer-alpha));' +
+          'background:rgba(var(--cf-glass-rgb),var(--cf-composer-alpha));' +
           'backdrop-filter:blur(var(--cf-composer-blur));-webkit-backdrop-filter:blur(var(--cf-composer-blur));' +
           'clip-path:polygon(2.2% 0,97.8% 0,100% 12%,100% 88%,97.8% 100%,2.2% 100%,0 88%,0 12%);' +
           'pointer-events:none}',
@@ -941,7 +965,7 @@ window.__ModuleLoader__.load({
 
       /* --- 消息区玻璃：消息列一整片（对齐 demo 的 message-surface，无接缝） --- */
       out.push(
-        '[data-conversation-region="chat"] [class*="_column"]{background:rgba(248,249,250,var(--cf-chat-alpha))!important;' +
+        '[data-conversation-region="chat"] [class*="_column"]{background:rgba(var(--cf-chat-rgb),var(--cf-chat-alpha))!important;' +
           'backdrop-filter:blur(var(--cf-chat-blur));-webkit-backdrop-filter:blur(var(--cf-chat-blur));' +
           'border-radius:2px!important}' +
         '[data-conversation-region="chat"] [class*="_column"] [class*="_flowItem"]{background:transparent!important}',
@@ -1134,7 +1158,7 @@ window.__ModuleLoader__.load({
             }
           : null,
         computed: collectCardInfo(),
-        layout: collectLayoutInfo(),
+        layout: diagHeavy() ? collectLayoutInfo() : [{ label: 'skipped', hint: 'cf-diag=1 开启' }],
       })
     }
 
@@ -1222,29 +1246,3 @@ window.__ModuleLoader__.load({
     }
   },
 })
-
-/* hmr probe 1793600760 */
-
-/* hmr 1793600859 */
-
-/* sync 1793600938 */
-
-/* sync 1793601301 */
-
-/* sync 1793603402 */
-
-/* sync 1793603788 */
-
-/* sync 1793603861 */
-
-/* a-0.62 1793603934 */
-
-/* a-0.42 1793603944 */
-
-/* a-0.30 1793603954 */
-
-/* a-0.22 1793603964 */
-
-/* a-0.10 1793603975 */
-
-/* v2 1793605499 */

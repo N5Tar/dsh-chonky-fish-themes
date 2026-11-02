@@ -16,6 +16,8 @@ import { fileURLToPath } from 'node:url'
 const PKG_DIR = dirname(fileURLToPath(import.meta.url))
 const PACKS_DIR = join(PKG_DIR, 'packs')
 const DIAG_LOG = join(tmpdir(), 'dsh-skin-diag.log')
+/** 诊断默认关闭：仅在 DSH_SKIN_DIAG=1 时写临时日志，避免生产环境无界增长。 */
+const DIAG_ENABLED = process.env.DSH_SKIN_DIAG === '1'
 const ROUTE = '/skin'
 
 const MIME = {
@@ -57,6 +59,7 @@ function isFile(abs) {
 
 /** 临时诊断：把 Client 上报与素材请求写入临时日志，便于无浏览器控制时定位问题。 */
 function logDiag(entry) {
+  if (!DIAG_ENABLED) return
   try {
     appendFileSync(DIAG_LOG, JSON.stringify({ t: new Date().toISOString(), ...entry }) + '\n')
   } catch {
@@ -153,7 +156,6 @@ async function handle(req, res) {
       return
     }
 
-    logDiag({ kind: 'get', path: pathname, ua: req.headers['user-agent'] })
     if (pathname !== ROUTE && !pathname.startsWith(ROUTE + '/')) {
       sendText(res, 404, 'not found')
       return

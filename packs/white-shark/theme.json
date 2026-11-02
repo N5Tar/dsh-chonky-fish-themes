@@ -261,8 +261,6 @@
     "composerGlassAlpha": 0.12,
     "composerGlassInset": 10,
     "composerBlur": 1,
-    "chatGlassAlpha": 0.12,
-    "chatGlassBlur": 1,
     "artOpacity": 1
   },
   "copy": {
@@ -274,6 +272,14 @@
       "subtitle": "与世界，保持适当距离。",
       "label": "DSH ASSISTANT",
       "signature": "Dafeiyu"
+    },
+    "tune": {
+      "label": "透明度",
+      "expand": "展开透明度滑块",
+      "collapse": "收起透明度滑块",
+      "collapseTitle": "收起透明度设置",
+      "rangeLabel": "会话和 Composer 联动透明度，数值越大越透明",
+      "groupLabel": "界面透明度设置"
     }
   },
   "decor": [

@@ -83,8 +83,6 @@ const GEOMETRY_RULES = {
   composerGlassAlpha: { type: 'number', min: 0, max: 1 },
   composerGlassInset: { type: 'number', min: 0, max: 40 },
   composerBlur: { type: 'number', min: 0, max: 40 },
-  chatGlassAlpha: { type: 'number', min: 0, max: 1 },
-  chatGlassBlur: { type: 'number', min: 0, max: 40 },
   artOpacity: { type: 'number', min: 0, max: 1 },
 }
 
@@ -305,7 +303,7 @@ if ('copy' in pack) {
   const c = pack.copy
   if (!isObject(c)) e('copy', '必须是对象')
   else {
-    knownKeys(c, ['mode', 'heroHeadline', 'heroSubline', 'placeholder', 'brandMicroline', 'statusLabel', 'profile'], 'copy')
+    knownKeys(c, ['mode', 'heroHeadline', 'heroSubline', 'placeholder', 'brandMicroline', 'statusLabel', 'profile', 'tune'], 'copy')
     if (!COPY_MODES.has(c.mode)) e('copy.mode', '必须是 official | css-replace')
     for (const k of ['heroHeadline', 'heroSubline', 'placeholder', 'brandMicroline', 'statusLabel']) {
       if (k in c && !isStr(c[k])) e(`copy.${k}`, '必须是非空字符串')
@@ -317,7 +315,7 @@ if ('copy' in pack) {
       const pr = c.profile
       if (!isObject(pr)) e('copy.profile', '必须是对象')
       else {
-        knownKeys(pr, ['name', 'title', 'subtitle', 'label'], 'copy.profile')
+        knownKeys(pr, ['name', 'title', 'subtitle', 'label', 'signature'], 'copy.profile')
         for (const k of ['name', 'subtitle', 'label']) {
           if (!isStr(pr[k])) e(`copy.profile.${k}`, '必须是非空字符串')
         }
