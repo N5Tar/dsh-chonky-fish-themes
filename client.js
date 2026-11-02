@@ -254,9 +254,9 @@ window.__ModuleLoader__.load({
           '[data-composer-card]{' +
             'position:relative;isolation:isolate;' +
             'border:0!important;border-radius:0!important;box-sizing:border-box;' +
-            'background-image:url("' + frameBg + '"),linear-gradient(180deg,rgba(255,255,255,0.80),rgba(244,246,247,0.72))!important;' +
-            'background-color:rgba(255,255,255,0.24)!important;' +
-            'backdrop-filter:blur(20px) saturate(1.1);' +
+            'background-image:url("' + frameBg + '")!important;' +
+            'background-color:transparent!important;' +
+            'backdrop-filter:none!important;' +
             'background-size:100% 100%,auto!important;background-position:center,0 0!important;' +
             'background-repeat:no-repeat!important;background-origin:border-box!important;' +
             'background-clip:border-box!important;' +
