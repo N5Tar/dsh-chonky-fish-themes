@@ -34,6 +34,15 @@ node --check client.js && node --check index.js
 - 只改 `theme.json` 不会自动重载，需要触碰 `client.js` 或重启应用；
 - 诊断日志默认关闭，排障时以 `DSH_SKIN_DIAG=1` 启动宿主，客户端重量级采集用 `localStorage.setItem('cf-diag','1')`。
 
+## 主题切换
+
+安装后：**设置 → 通用设置 → 主题**，两个选项：
+
+- **默认**：注销引擎注入的样式与 token 覆盖，回到 DSH 原生外观（无需重启）；
+- **轻机甲风**：重新注入皮肤（配色、底图、玻璃、装甲导轨、资料卡）。
+
+选择存在 `localStorage['cf-theme-mode']`（`mecha` 缺省 / `default`），刷新后保持。切换走的路径是 `ctx.locale` + `settings.general.item` 槽位，不修改宿主文件。
+
 ## 透明玻璃
 
 输入卡与消息列共用一套「透明度」：`theme.geometry.composerGlassAlpha` 是默认值，用户在上缘拉手（⌃）里调过之后以 `localStorage['cf-glass-transparency']` 为准，`blur = round(12 × alpha)` 联动。

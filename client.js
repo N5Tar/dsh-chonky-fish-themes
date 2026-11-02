@@ -115,6 +115,102 @@ window.__ModuleLoader__.load({
       }
     }
 
+    /* ---- 主题模式：默认 / 轻机甲风（设置 → 通用 里的一行） ---- */
+    const MODE_KEY = 'cf-theme-mode'
+    const MODES = ['default', 'mecha']
+    function readThemeMode() {
+      try {
+        const v = localStorage.getItem(MODE_KEY)
+        return MODES.includes(v) ? v : 'mecha'
+      } catch (e) {
+        return 'mecha'
+      }
+    }
+    let themeMode = readThemeMode()
+    const modeSubs = new Set()
+    function setThemeMode(next) {
+      themeMode = MODES.includes(next) ? next : 'default'
+      try { localStorage.setItem(MODE_KEY, themeMode) } catch (e) {}
+      for (const fn of Array.from(modeSubs)) {
+        try { fn(themeMode) } catch (e) {}
+      }
+    }
+    function useThemeMode() {
+      const [mode, setMode] = React.useState(themeMode)
+      React.useEffect(() => {
+        const fn = (m) => setMode(m)
+        modeSubs.add(fn)
+        return () => modeSubs.delete(fn)
+      }, [])
+      return mode
+    }
+
+    /* ---- 本地化（复用宿主 locale 服务；缺字典时回退中文） ---- */
+    const LOCALE_NS = 'chonky-fish-themes'
+    const LOCALE_DICT = {
+      zh: { 'theme.label': '主题', 'theme.default': '默认', 'theme.mecha': '轻机甲风' },
+      en: { 'theme.label': 'Theme', 'theme.default': 'Default', 'theme.mecha': 'Light Mecha' },
+    }
+    let translateRef = null
+    const localeSubs = new Set()
+    function t(key, fallback) {
+      try {
+        if (translateRef) {
+          const v = translateRef(key)
+          if (v && v !== key) return v
+        }
+      } catch (e) {}
+      return fallback
+    }
+    function useLocaleVersion() {
+      const [, setV] = React.useState(0)
+      React.useEffect(() => {
+        const fn = () => setV((n) => n + 1)
+        localeSubs.add(fn)
+        return () => localeSubs.delete(fn)
+      }, [])
+    }
+
+    /** 设置 → 通用 里的一行：主题选择（默认 DSH / 轻机甲风）。 */
+    function ThemeModeRow() {
+      const mode = useThemeMode()
+      useLocaleVersion()
+      const label = t('theme.label', '主题')
+      const options = [
+        { id: 'default', text: t('theme.default', '默认') },
+        { id: 'mecha', text: t('theme.mecha', '轻机甲风') },
+      ]
+      return h('div', {
+        'data-skin-setting': 'theme-mode',
+        style: {
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px',
+          padding: '14px 0', borderBottom: '1px solid var(--dsw-alias-border-l2)',
+        },
+      },
+        h('span', { style: { fontSize: '13px', fontWeight: 500, color: 'var(--dsw-alias-label-primary)' } }, label),
+        h('div', {
+          role: 'group', 'aria-label': label,
+          style: {
+            display: 'inline-flex', alignItems: 'center', gap: '2px', padding: '2px',
+            border: '1px solid var(--dsw-alias-border-l2)', borderRadius: '6px',
+          },
+        }, options.map((opt) => h('button', {
+          key: opt.id,
+          type: 'button',
+          'aria-pressed': mode === opt.id,
+          onClick: () => setThemeMode(opt.id),
+          style: {
+            padding: '5px 12px', fontSize: '12px', lineHeight: 1.2, borderRadius: '4px', cursor: 'pointer',
+            border: 0,
+            background: mode === opt.id ? 'var(--dsw-alias-bg-layer-1)' : 'transparent',
+            color: mode === opt.id ? 'var(--dsw-alias-label-primary)' : 'var(--dsw-alias-label-secondary)',
+            fontWeight: mode === opt.id ? 600 : 400,
+            boxShadow: mode === opt.id ? '0 1px 2px rgba(0,0,0,0.10)' : 'none',
+          },
+        }, opt.text))),
+      )
+    }
+
     /* ---- 透明度联动控件（完全对齐 demo .composer-tune / .tune-tab / .tune-panel） ---- */
     const GLASS_KEY = 'cf-glass-transparency'
 
@@ -294,6 +390,7 @@ window.__ModuleLoader__.load({
 
     function DecorOverlay() {
       const theme = useTheme()
+      const mode = useThemeMode()
       const [, tick] = React.useState(0)
       React.useEffect(() => {
         const bump = () => tick((n) => n + 1)
@@ -326,7 +423,7 @@ window.__ModuleLoader__.load({
         }
       })
       const decor = theme && Array.isArray(theme.decor) ? theme.decor : []
-      if (!theme) return null
+      if (mode !== 'mecha' || !theme) return null
       const anchors = computeAnchors()
       const inHero = Boolean(document.querySelector('[data-content-phase="hero"]'))
       const children = []
@@ -1199,7 +1296,7 @@ window.__ModuleLoader__.load({
     }
 
     return {
-      inject: ['theme', 'slots'],
+      inject: ['theme', 'slots', 'locale'],
       apply(ctx) {
         try {
           window.addEventListener('error', (e) => {
@@ -1219,13 +1316,96 @@ window.__ModuleLoader__.load({
         }, DecorOverlay))
 
         ctx.effect(() => {
+          const offs = []
+          try {
+            const snap = ctx.locale.getLocale()
+            for (const def of snap.locales) {
+              const dict = /^zh/i.test(def.id) ? LOCALE_DICT.zh : LOCALE_DICT.en
+              offs.push(ctx.locale.register(LOCALE_NS, def.id, dict))
+            }
+            translateRef = ctx.locale.bind(LOCALE_NS)
+            offs.push(ctx.locale.subscribe(() => {
+              for (const fn of Array.from(localeSubs)) {
+                try { fn() } catch (e) {}
+              }
+            }))
+          } catch (err) {
+            console.error(LOG, 'locale registration failed:', err)
+          }
+          return () => {
+            translateRef = null
+            for (const off of offs) {
+              try { off() } catch (e) {}
+            }
+          }
+        }, 'chonky-fish-themes: locale')
+
+        ctx.slots.inject('settings.general.item', () => ctx.slots.register({
+          name: 'settings.general.item',
+          id: 'chonky-fish-theme-mode',
+          order: 10.5,
+        }, ThemeModeRow))
+
+        ctx.effect(() => {
           let disposed = false
-          const disposers = []
+          let themeCache = null
+          let frameReady = false
+          let applied = []
+          let probed = false
 
           diag({ stage: 'boot' })
+
+          const disposeApplied = () => {
+            for (const dispose of applied) {
+              try { dispose() } catch (e) {}
+            }
+            applied = []
+          }
+
+          const sync = () => {
+            if (disposed) return
+            disposeApplied()
+            if (themeMode !== 'mecha' || !themeCache) return
+            applyPack(ctx, themeCache, applied, frameReady)
+          }
+
+          const probeFrame = (theme) => {
+            if (probed) return
+            probed = true
+            const frameRel = theme.assets && theme.assets['composer.frame']
+            const frameAvailable = Boolean(theme._available && theme._available.assets && theme._available.assets['composer.frame'])
+            const frameUrl = frameAvailable && frameRel ? assetUrl(frameRel) : null
+            if (!frameUrl) { sync(); return }
+            try {
+              const probe = new Image()
+              probe.onload = () => {
+                if (disposed) return
+                frameReady = true
+                diag({ stage: 'frame-loaded', w: probe.naturalWidth, h: probe.naturalHeight })
+                sync()
+              }
+              probe.onerror = () => {
+                if (disposed) return
+                diag({ stage: 'frame-error' })
+                sync()
+              }
+              probe.src = frameUrl
+            } catch (err) {
+              diag({ stage: 'probe-throw', message: String((err && err.message) || err) })
+              sync()
+            }
+          }
+
+          const onMode = () => {
+            if (themeMode === 'mecha' && !themeCache) return
+            sync()
+            if (themeMode === 'mecha' && themeCache) probeFrame(themeCache)
+          }
+          modeSubs.add(onMode)
+
           const bgProbe = new Image()
           bgProbe.onload = () => diag({ stage: 'bg-loaded', w: bgProbe.naturalWidth, h: bgProbe.naturalHeight })
-          bgProbe.onerror = (e) => diag({ stage: 'bg-error', msg: 'image failed' })
+          bgProbe.onerror = () => diag({ stage: 'bg-error', msg: 'image failed' })
           bgProbe.src = ROUTE + 'bg.webp'
 
           fetch(ROUTE + 'theme.json', { cache: 'no-store' })
@@ -1235,32 +1415,9 @@ window.__ModuleLoader__.load({
             })
             .then((theme) => {
               if (disposed) return
+              themeCache = theme
               setTheme(theme)
-              const frameRel = theme.assets && theme.assets['composer.frame']
-              const frameAvailable = Boolean(theme._available && theme._available.assets && theme._available.assets['composer.frame'])
-              const frameUrl = frameAvailable && frameRel ? assetUrl(frameRel) : null
-              if (!frameUrl) {
-                applyPack(ctx, theme, disposers, false)
-                return
-              }
-              // 图片探测：加载成功才启用 9-slice，失败则回退纯 CSS 造型
-              try {
-                const probe = new Image()
-                probe.onload = () => {
-                  if (disposed) return
-                  diag({ stage: 'frame-loaded', w: probe.naturalWidth, h: probe.naturalHeight })
-                  applyPack(ctx, theme, disposers, true)
-                }
-                probe.onerror = () => {
-                  if (disposed) return
-                  diag({ stage: 'frame-error' })
-                  applyPack(ctx, theme, disposers, false)
-                }
-                probe.src = frameUrl
-              } catch (err) {
-                diag({ stage: 'probe-throw', message: String((err && err.message) || err) })
-                applyPack(ctx, theme, disposers, false)
-              }
+              if (themeMode === 'mecha') probeFrame(theme)
             })
             .catch((err) => {
               console.error(LOG, 'theme load failed:', err)
@@ -1269,13 +1426,8 @@ window.__ModuleLoader__.load({
 
           return () => {
             disposed = true
-            for (const dispose of disposers) {
-              try {
-                dispose()
-              } catch {
-                /* already disposed */
-              }
-            }
+            modeSubs.delete(onMode)
+            disposeApplied()
           }
         }, 'chonky-fish-themes: skin')
       },
