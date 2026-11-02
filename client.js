@@ -179,6 +179,27 @@ window.__ModuleLoader__.load({
         ))
       }
 
+      // 侧栏底部装甲条（demo bottom-armor），叠在左下角，纯装饰
+      if (sidebarRect) {
+        const armorH = 38
+        children.push(h('div', {
+          key: 'bottom-armor',
+          style: {
+            position: 'absolute', left: sidebarRect.left + 'px',
+            top: (sidebarRect.top + sidebarRect.height - armorH) + 'px',
+            width: sidebarRect.width + 'px', height: armorH + 'px',
+            pointerEvents: 'none', zIndex: 2, overflow: 'hidden',
+          },
+        }, h('svg', {
+          viewBox: '0 0 307 46', preserveAspectRatio: 'none', width: '100%', height: '100%',
+          style: { display: 'block' },
+        },
+          h('path', { fill: '#191c21', d: 'M0 10 L18 25 L35 42 H281 L307 46 H0 Z' }),
+          h('path', { fill: '#34383d', d: 'M0 10 L18 26 L35 41 H281 L286 43 H34 Z' }),
+          h('path', { stroke: '#92999f', strokeWidth: 1, fill: 'none', d: 'M1 10 L18 26 L35 41 H281' }),
+        )))
+      }
+
       // 侧栏左缘机械装甲导轨（SVG 路径，参考 dsh-mechanical-sidebar-demo）
       if (sidebarRect && caps.includes('profileCard')) {
         const rail = h('svg', {
@@ -598,6 +619,7 @@ window.__ModuleLoader__.load({
         'div:has(> [data-slot="sidebar"]){background:' +
           tint('--dsw-specific-sidebar-fill', sidebarAlpha) + '!important}',
         '[data-slot="sidebar"] > div > *{margin-left:34px!important}',
+        '[data-slot="sidebar"] > div{padding-bottom:44px!important}',
         '[data-slot="sidebar"] > div > *:nth-child(3){margin-top:var(--cf-card-gap,236px)!important}',
         '[data-slot="sidebar"] > div{overflow-y:auto;scrollbar-width:none}',
         'div:has(> [data-slot="sidebar.workspaces"]){flex:1 1 auto!important;min-height:280px!important;' +
