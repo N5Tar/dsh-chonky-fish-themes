@@ -128,6 +128,13 @@ window.__ModuleLoader__.load({
           document.removeEventListener('scroll', bump, true)
         }
       }, [])
+      const cardRef = React.useRef(null)
+      React.useLayoutEffect(() => {
+        if (cardRef.current) {
+          const hgt = Math.ceil(cardRef.current.getBoundingClientRect().height + 14)
+          document.documentElement.style.setProperty('--cf-card-gap', hgt + 'px')
+        }
+      })
       const decor = theme && Array.isArray(theme.decor) ? theme.decor : []
       if (decor.length === 0) return null
       const anchors = computeAnchors()
@@ -162,6 +169,7 @@ window.__ModuleLoader__.load({
         const cardW = Math.max(180, sidebarRect.width - 32)
         children.push(h('div', {
           key: 'profile-card',
+          ref: cardRef,
           style: {
             position: 'absolute', left: (sidebarRect.left + 16) + 'px', top: ((brandRect ? brandRect.bottom + 8 : sidebarRect.top + 64)) + 'px', width: cardW + 'px',
             boxSizing: 'border-box', padding: '10px 12px 12px',
@@ -454,7 +462,7 @@ window.__ModuleLoader__.load({
       out.push(
         'div:has(> [data-slot="sidebar"]){background:' +
           tint('--dsw-specific-sidebar-fill', sidebarAlpha) + '!important}',
-        '[data-slot="sidebar"] > div > *:nth-child(3){margin-top:214px!important}',
+        '[data-slot="sidebar"] > div > *:nth-child(3){margin-top:var(--cf-card-gap,236px)!important}',
         '[data-slot="sidebar"] > div{overflow-y:auto;scrollbar-width:none}',
         'div:has(> [data-slot="sidebar.workspaces"]){flex:1 1 auto!important;min-height:280px!important;' +
           'overflow-y:auto!important;overflow-x:hidden!important;display:flex!important;flex-direction:column}',
