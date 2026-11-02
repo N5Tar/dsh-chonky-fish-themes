@@ -38,6 +38,7 @@ const SLOT_RULES = {
   noise: { required: false, ext: ['.png'], maxBytes: 8 * 1024 },
   'composer.frame': { required: false, ext: ['.png'], maxBytes: 300 * 1024 },
   'composer.grain': { required: false, ext: ['.png'], maxBytes: 24 * 1024 },
+  'composer.frameBg': { required: false, ext: ['.png'], maxBytes: 300 * 1024 },
   icon: { required: true, ext: ['.svg', '.png', '.webp'], maxBytes: 256 * 1024 },
 }
 
@@ -70,6 +71,7 @@ const GEOMETRY_RULES = {
   darkScrim: { type: 'number', min: 0, max: 0.9 },
   composerFrameSlice: { type: 'number', min: 16, max: 160 },
   composerFrameWidth: { type: 'number', min: 8, max: 64 },
+  composerChrome: { type: 'enum', values: new Set(['css', 'frame', 'asset']) },
 }
 
 const RECOMMENDED_TOKENS = [

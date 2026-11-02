@@ -230,7 +230,8 @@
     "noise": "noise.png",
     "icon": "icon.svg",
     "composer.frame": "decor/composer-frame.png",
-    "composer.grain": "decor/composer-grain.png"
+    "composer.grain": "decor/composer-grain.png",
+    "composer.frameBg": "decor/composer-frame-bg.png"
   },
   "geometry": {
     "frameInset": 12,
@@ -245,7 +246,7 @@
     "darkScrim": 0.72,
     "composerFrameSlice": 96,
     "composerFrameWidth": 26,
-    "composerChrome": "css"
+    "composerChrome": "frame"
   },
   "copy": {
     "mode": "official",

@@ -116,6 +116,9 @@ window.__ModuleLoader__.load({
       const frameSlice = num(geometry.composerFrameSlice, 96)
       const frameWidth = num(geometry.composerFrameWidth, 26)
       const composerChrome = typeof geometry.composerChrome === 'string' ? geometry.composerChrome : 'css'
+      const frameBg = assetAvailable['composer.frameBg']
+        ? assetUrl(theme.assets && theme.assets['composer.frameBg'])
+        : null
 
       const out = []
 
@@ -171,7 +174,27 @@ window.__ModuleLoader__.load({
       )
 
       /* --- composer card shape ------------------------------------------------- */
-      if (composerChrome === 'css') {
+      if (composerChrome === 'frame' && frameBg) {
+        // 容器方案：卡片本体透明化，外框图作为容器背景铺满（预缩放素材，1:1 贴图）
+        out.push(
+          '[data-composer-card]{' +
+            'position:relative;isolation:isolate;' +
+            'border:0!important;border-radius:0!important;box-sizing:border-box;' +
+            'background:rgba(255,255,255,0.97)!important;' +
+            'box-shadow:none!important;clip-path:none!important;filter:none!important;' +
+            'padding:24px 28px!important' +
+            '}',
+          '[data-composer-card]::before{content:"";position:absolute;inset:0;z-index:-1;' +
+            'background:url("' + frameBg + '") center/100% 100% no-repeat;pointer-events:none}',
+          '[data-composer-card] [class*="_add"]{width:32px;height:32px;border:1px solid rgba(28,28,31,0.25)!important;' +
+            'border-radius:2px!important;background:transparent!important;color:#1c1c1f!important}',
+          '[data-composer-card] [class*="_primary"]{border-radius:2px!important;' +
+            'background:#1c1c1f!important;color:#ffffff!important}',
+          '[data-composer-card] [class*="_primary"] svg{color:#ffffff!important}',
+          '[data-composer-card] [class*="_placeholder"]{color:#9a9aa0!important}',
+          '[data-composer-card] [class*="_trailing"]{font-weight:500;letter-spacing:0.01em}',
+        )
+      } else if (composerChrome === 'css') {
         const c = Math.max(Math.min(chamfer, 16), 10)
         // 纯 CSS 卡片：近实白卡面 + 切角 + 深色偏置垫板（drop-shadow 跟随切角形状；
         // 卡面接近不透明，避免透出宿主的测高副本）
