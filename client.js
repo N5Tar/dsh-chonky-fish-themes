@@ -368,6 +368,45 @@ window.__ModuleLoader__.load({
         labelPrimary: bodyCs.getPropertyValue('--dsw-alias-label-primary').trim(),
         bgBase: bodyCs.getPropertyValue('--dsw-alias-bg-base').trim(),
         chatColor: chatP ? getComputedStyle(chatP).color : null })
+      const probe = (x, y) => {
+        try {
+          return document.elementsFromPoint(x, y).slice(0, 6).map((el) => {
+            const cs = getComputedStyle(el)
+            return { tag: el.tagName.toLowerCase(), cls: String(el.className || '').slice(0, 36), attrs: Array.from(el.attributes).filter((a) => a.name.startsWith('data-')).map((a) => a.name).slice(0, 3).join(','), bg: cs.backgroundColor, bgImg: String(cs.backgroundImage).slice(0, 40) }
+          })
+        } catch (e) { return [{ error: String(e) }] }
+      }
+      const bgAt = (x, y) => Array.from(document.querySelectorAll('*')).filter((el) => {
+        const r = el.getBoundingClientRect()
+        if (x < r.left || x > r.right || y < r.top || y > r.bottom) return false
+        const cs = getComputedStyle(el)
+        return cs.backgroundColor !== 'rgba(0, 0, 0, 0)' || String(cs.backgroundImage) !== 'none'
+      }).slice(-8).map((el) => {
+        const cs = getComputedStyle(el)
+        return { tag: el.tagName.toLowerCase(), cls: String(el.className || '').slice(0, 30), bg: cs.backgroundColor, img: String(cs.backgroundImage).slice(0, 44) }
+      })
+      out.push({ label: 'bgAtBottom', items: bgAt(Math.round(innerWidth * 0.5), Math.round(innerHeight - 14)) })
+      const pseudoAt = (x, y) => {
+        const out = []
+        for (const el of document.querySelectorAll('*')) {
+          const r = el.getBoundingClientRect()
+          if (x < r.left || x > r.right || y < r.top || y > r.bottom) continue
+          for (const pe of ['::before', '::after']) {
+            try {
+              const cs = getComputedStyle(el, pe)
+              const has = (cs.content && cs.content !== 'none' && cs.content !== 'normal') || (cs.backgroundColor && cs.backgroundColor !== 'rgba(0, 0, 0, 0)') || String(cs.backgroundImage) !== 'none'
+              if (!has) continue
+              if (cs.backgroundColor === 'rgba(0, 0, 0, 0)' && String(cs.backgroundImage) === 'none') continue
+              out.push({ cls: String(el.className || '').slice(0, 28), pe, bg: cs.backgroundColor, img: String(cs.backgroundImage).slice(0, 44), content: String(cs.content).slice(0, 12) })
+            } catch (e) {}
+          }
+        }
+        return out.slice(0, 8)
+      }
+      const seat = document.querySelector('[data-composer-seat]')
+      out.push({ label: 'seatBg', bg: seat ? getComputedStyle(seat).backgroundImage : null, bgColor: seat ? getComputedStyle(seat).backgroundColor : null })
+      out.push({ label: 'pseudoAtBottom', items: pseudoAt(Math.round(innerWidth * 0.5), Math.round(innerHeight - 14)) })
+      out.push({ label: 'bottomProbe', bottom: probe(Math.round(innerWidth * 0.5), Math.round(innerHeight - 24)), belowComposer: probe(Math.round(innerWidth * 0.5), Math.round(innerHeight - 110)) })
       out.push({ label: 'sidebarScroll', col: sbInfo(sbCol, 'col'), root: sbInfo(sbRoot, 'root'), region: sbInfo(document.querySelector('[data-slot="sidebar.workspaces"]'), 'region') })
       out.push({ label: 'phase', hero: Boolean(document.querySelector('[data-content-phase="hero"]')), phaseEl: (document.querySelector('[data-content-phase]') || {}).getAttribute ? document.querySelector('[data-content-phase]').getAttribute('data-content-phase') : null })
       return out
@@ -510,9 +549,12 @@ window.__ModuleLoader__.load({
         'div:has(> [data-slot="sidebar.workspaces"]){flex:1 1 auto!important;min-height:280px!important;' +
           'overflow-y:auto!important;overflow-x:hidden!important;display:flex!important;flex-direction:column}',
         // 会话态：不再整体加白/模糊，改成「左侧渐隐白纱」，右侧保持底图清晰
-        'div:has(> [data-slot="main"]){background:linear-gradient(90deg,' +
+        'div:has(> [data-slot="main"]){background:' +
+          // 底部轻微压暗，避免底图亮部与白纱叠加成一片死白
+          'linear-gradient(180deg,rgba(28,28,31,0) 82%,rgba(28,28,31,0.10) 100%),' +
+          'linear-gradient(90deg,' +
           'rgba(255,255,255,' + centerAlpha + ') 0%,' +
-          'rgba(255,255,255,' + (centerAlpha * 0.55).toFixed(3) + ') 46%,' +
+          'rgba(255,255,255,' + (centerAlpha * 0.5).toFixed(3) + ') 46%,' +
           'rgba(255,255,255,0) 80%)!important;' +
           'backdrop-filter:none!important}',
         'div:has(> [data-slot="main"]):has([data-content-phase="hero"]){background:' +
@@ -520,6 +562,12 @@ window.__ModuleLoader__.load({
         'div:has(> [data-slot="rightbar"]){background:transparent!important}',
         '@media (max-width: 1180px){div:has(> [data-slot="main"]){background:linear-gradient(90deg,' +
           'rgba(255,255,255,0.72) 0%,rgba(255,255,255,0.45) 55%,rgba(255,255,255,0.12) 100%)!important}}',
+      )
+
+      /* --- composer seat：宿主默认用 bg-base 渐隐盖住卡片下方，改为半透明白纱 --- */
+      out.push(
+        '[data-composer-seat]{background-image:linear-gradient(180deg,' +
+          'rgba(255,255,255,0) 0px,rgba(255,255,255,0.16) 40px)!important}',
       )
 
       /* --- composer card shape ------------------------------------------------- */

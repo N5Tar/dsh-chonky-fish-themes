@@ -243,7 +243,7 @@
     "chamferStyle": "corner-cut",
     "plateColor": "#202023",
     "sidebarAlpha": 0.94,
-    "centerAlpha": 0.55,
+    "centerAlpha": 0.42,
     "heroCenterAlpha": 0.0,
     "composerPlateOffset": 8,
     "noiseOpacity": 0.03,
