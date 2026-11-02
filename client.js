@@ -110,6 +110,91 @@ window.__ModuleLoader__.load({
       }
     }
 
+    /* ---- 玻璃透明度调节（demo 里 composer 上方的小方块） ---- */
+    function readGlassPct() {
+      try {
+        const saved = JSON.parse(localStorage.getItem('cf-glass-v2') || 'null')
+        if (saved && typeof saved.alpha === 'number') {
+          return Math.max(0, Math.min(100, Math.round(saved.alpha * 100)))
+        }
+      } catch (e) {}
+      return 78
+    }
+    function applyGlassPct(pct) {
+      const alpha = pct / 100
+      const blur = Math.round(12 * alpha)
+      const root = document.documentElement.style
+      root.setProperty('--cf-composer-alpha', String(alpha))
+      root.setProperty('--cf-chat-alpha', String(alpha))
+      root.setProperty('--cf-composer-blur', blur + 'px')
+      root.setProperty('--cf-chat-blur', blur + 'px')
+      try { localStorage.setItem('cf-glass-v2', JSON.stringify({ alpha })) } catch (e) {}
+    }
+    function GlassControl(props) {
+      const [open, setOpen] = React.useState(false)
+      const [pct, setPct] = React.useState(readGlassPct)
+      React.useEffect(() => { applyGlassPct(pct) }, [pct])
+      const r = props.rect
+      if (!r) return null
+      const ink = props.ink
+      const inkSoft = props.inkSoft
+      const lineClr = props.lineClr
+      return h('div', {
+        style: {
+          position: 'fixed', left: Math.round(r.right - 22) + 'px', top: Math.round(r.top - 30) + 'px',
+          width: '22px', display: 'flex', flexDirection: 'column', alignItems: 'flex-end',
+          pointerEvents: 'auto', zIndex: 30,
+        },
+      },
+        open ? h('div', {
+          style: {
+            width: '228px', marginBottom: '6px', padding: '9px 10px 8px',
+            border: '1px solid ' + lineClr, background: 'rgba(250,250,250,0.94)',
+            backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)',
+            fontFamily: 'var(--ds-font-family-code)', color: ink,
+            display: 'flex', flexDirection: 'column', gap: '7px',
+            boxShadow: '0 6px 18px rgba(20,22,26,0.10)',
+          },
+        },
+          h('div', { style: { display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', fontSize: '8.5px', letterSpacing: '0.18em' } },
+            h('span', null, 'GLASS · LINKED'),
+            h('span', { style: { color: inkSoft } }, String(pct).padStart(2, '0') + '%'),
+          ),
+          h('input', {
+            type: 'range', min: 0, max: 100, step: 1, value: pct,
+            onChange: (e) => setPct(Number(e.target.value)),
+            style: { width: '100%', accentColor: '#1c1c1f', height: '14px' },
+          }),
+          h('div', { style: { display: 'flex', justifyContent: 'space-between', fontSize: '7px', letterSpacing: '0.14em', color: inkSoft } },
+            h('span', null, 'CLEAR'),
+            h('span', null, 'SOLID'),
+          ),
+          h('button', {
+            type: 'button',
+            onClick: () => { try { localStorage.removeItem('cf-glass-v2') } catch (e) {} ; setPct(props.defaultPct) },
+            style: {
+              alignSelf: 'flex-end', border: '1px solid ' + lineClr, background: 'transparent',
+              color: inkSoft, fontFamily: 'var(--ds-font-family-code)', fontSize: '7px',
+              letterSpacing: '0.16em', padding: '3px 6px', cursor: 'pointer',
+            },
+          }, 'RESET'),
+        ) : null,
+        h('button', {
+          type: 'button', onClick: () => setOpen((v) => !v), title: '玻璃透明度',
+          style: {
+            width: '22px', height: '22px', padding: 0, cursor: 'pointer',
+            border: '1px solid ' + (open ? ink : lineClr),
+            background: open ? 'rgba(28,28,31,0.06)' : 'rgba(250,250,250,0.55)',
+            color: ink, display: 'grid', placeItems: 'center',
+          },
+        }, h('svg', { width: 11, height: 11, viewBox: '0 0 11 11', fill: 'none' },
+          h('rect', { x: 1.5, y: 1.5, width: 8, height: 8, stroke: 'currentColor', strokeWidth: 0.8 }),
+          h('path', { d: 'M4 1.5V9.5', stroke: 'currentColor', strokeWidth: 0.8 }),
+          h('path', { d: 'M1.5 6H9.5', stroke: 'currentColor', strokeWidth: 0.8, opacity: 0.55 }),
+        )),
+      )
+    }
+
     function DecorOverlay() {
       const theme = useTheme()
       const [, tick] = React.useState(0)
@@ -345,6 +430,12 @@ window.__ModuleLoader__.load({
           }, d.text))
         }
       })
+      const composerRect = rectOf('[data-composer-card]')
+      children.push(h(GlassControl, {
+        key: 'glass-control', rect: composerRect, ink, inkSoft, lineClr,
+        defaultPct: Math.round(num(theme && theme.geometry && theme.geometry.composerGlassAlpha, 0.78) * 100),
+      }))
+
       return h('div', {
         style: { position: 'fixed', inset: 0, pointerEvents: 'none', zIndex: 5, overflow: 'hidden' },
         'aria-hidden': true,
@@ -638,6 +729,15 @@ window.__ModuleLoader__.load({
       const composerBlur = num(geometry.composerBlur, 11)
       const chatGlassAlpha = num(geometry.chatGlassAlpha, 0.78)
       const chatGlassBlur = num(geometry.chatGlassBlur, 11)
+      let glassAlpha = composerGlassAlpha
+      let glassBlur = composerBlur
+      try {
+        const saved = JSON.parse(localStorage.getItem('cf-glass-v2') || 'null')
+        if (saved && typeof saved.alpha === 'number') {
+          glassAlpha = Math.min(1, Math.max(0, saved.alpha))
+          glassBlur = Math.round(12 * glassAlpha)
+        }
+      } catch (e) {}
       const artOpacity = num(geometry.artOpacity, 1)
       const frameBg = assetAvailable['composer.frameBg']
         ? assetUrl(theme.assets && theme.assets['composer.frameBg'])
@@ -763,21 +863,22 @@ window.__ModuleLoader__.load({
       /* --- composer 内层玻璃（demo：inset + 8 角切角 + blur） --- */
       out.push(
         '[data-composer-card]{position:relative!important}',
+        ':root{--cf-composer-alpha:' + glassAlpha + ';--cf-composer-blur:' + glassBlur + 'px;' +
+          '--cf-chat-alpha:' + glassAlpha + ';--cf-chat-blur:' + glassBlur + 'px}',
         '[data-composer-card]::before{content:"";position:absolute;inset:' + composerGlassInset + 'px;z-index:0;' +
-          'background:rgba(247,248,248,' + composerGlassAlpha + ');' +
-          'backdrop-filter:blur(' + composerBlur + 'px);-webkit-backdrop-filter:blur(' + composerBlur + 'px);' +
+          'background:rgba(247,248,248,var(--cf-composer-alpha));' +
+          'backdrop-filter:blur(var(--cf-composer-blur));-webkit-backdrop-filter:blur(var(--cf-composer-blur));' +
           'clip-path:polygon(2.2% 0,97.8% 0,100% 12%,100% 88%,97.8% 100%,2.2% 100%,0 88%,0 12%);' +
           'pointer-events:none}',
         '[data-composer-card] > *{position:relative;z-index:1}',
       )
 
-      /* --- 消息区逐条玻璃（demo message-surface：rgba + blur，直接铺在行背景） --- */
+      /* --- 消息区玻璃：消息列一整片（对齐 demo 的 message-surface，无接缝） --- */
       out.push(
-        '[data-conversation-region="chat"] [class*="_flowItem"]{' +
-          'background:rgba(248,249,250,' + chatGlassAlpha + ')!important;' +
-          'backdrop-filter:blur(' + chatGlassBlur + 'px);-webkit-backdrop-filter:blur(' + chatGlassBlur + 'px);' +
-          'border-radius:0!important}' +
-        '[data-conversation-region="chat"] [class*="_flowItem"] *{background-color:transparent!important}',
+        '[data-conversation-region="chat"] [class*="_column"]{background:rgba(248,249,250,var(--cf-chat-alpha))!important;' +
+          'backdrop-filter:blur(var(--cf-chat-blur));-webkit-backdrop-filter:blur(var(--cf-chat-blur));' +
+          'border-radius:2px!important}' +
+        '[data-conversation-region="chat"] [class*="_column"] [class*="_flowItem"]{background:transparent!important}',
       )
 
       /* --- 侧栏列表细节：工作区/会话行、树线、时间、选中态 --- */
@@ -974,6 +1075,17 @@ window.__ModuleLoader__.load({
     return {
       inject: ['theme', 'slots'],
       apply(ctx) {
+        try {
+          window.addEventListener('error', (e) => {
+            fetch(DIAG_ROUTE, { method: 'POST', headers: { 'content-type': 'application/json' },
+              body: JSON.stringify({ kind: 'clientError', message: String(e.message), stack: String(e.error && e.error.stack || '').slice(0, 600) }) }).catch(() => {})
+          })
+          window.addEventListener('unhandledrejection', (e) => {
+            fetch(DIAG_ROUTE, { method: 'POST', headers: { 'content-type': 'application/json' },
+              body: JSON.stringify({ kind: 'clientRejection', message: String(e.reason && e.reason.message || e.reason) }) }).catch(() => {})
+          })
+        } catch (e) {}
+
         ctx.slots.inject('shell.overlay', () => ctx.slots.register({
           name: 'shell.overlay',
           id: 'chonky-fish-themes-decor',
