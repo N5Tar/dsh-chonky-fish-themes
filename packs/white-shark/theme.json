@@ -261,7 +261,8 @@
     "composerGlassAlpha": 0.12,
     "composerGlassInset": 10,
     "composerBlur": 1,
-    "artOpacity": 1
+    "artOpacity": 1,
+    "railWidth": 34
   },
   "copy": {
     "mode": "official",

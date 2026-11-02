@@ -149,6 +149,7 @@ window.__ModuleLoader__.load({
       return { pct, alpha, blur: Math.max(1, Math.round(12 * alpha)), overridden: true }
     }
     function GlassControl(props) {
+      const [uid] = React.useState(() => 'cf-tune-' + Math.random().toString(36).slice(2, 8))
       const [pct, setPct] = React.useState(() => glassState(props.theme).pct)
       const [open, setOpen] = React.useState(false)
       const wrapRef = React.useRef(null)
@@ -178,14 +179,23 @@ window.__ModuleLoader__.load({
         }
       }, [open])
       const r = props.rect
-      if (!r) return null
+      // 宿主会为测高复制一份 DOM，隐藏副本里的 rect 在视口外：只让可见实例挂载
+      if (!r || r.width < 80 || r.top < -200 || r.top > innerHeight + 200) return null
       const copy = props.copy || {}
       const width = Math.min(342, Math.max(200, r.width - 118))
       const leftRaw = r.left + r.width / 2 - width / 2
       const left = Math.max(8, Math.min(leftRaw, innerWidth - width - 8))
       const top = Math.max(8, r.top - 18)
-      const ink = '#48515a'
-      const pctStyle = 'linear-gradient(90deg,#343b43 ' + pct + '%,#b9c0c5 ' + pct + '%)'
+      const dark = Boolean(props.isDark)
+      const ink = dark ? '#cfd5da' : '#48515a'
+      const shellBg = dark ? '#0d1013' : '#373d43'
+      const faceBg = dark ? 'linear-gradient(#23272b,#1b1f23)' : 'linear-gradient(#fafafa,#e9ebed)'
+      const barBg = dark ? '#23282d' : '#23282d'
+      const trackIdle = dark ? '#2b3238' : '#b9c0c5'
+      const trackFill = dark ? '#8b949b' : '#343b43'
+      const valueInk = dark ? '#d7dde2' : '#465159'
+      const closeInk = dark ? '#8b949b' : '#6d777e'
+      const pctStyle = 'linear-gradient(90deg,' + trackFill + ' ' + pct + '%,' + trackIdle + ' ' + pct + '%)'
       return h('div', {
         ref: wrapRef,
         style: { position: 'fixed', left: Math.round(left) + 'px', top: Math.round(top) + 'px', width: Math.round(width) + 'px',
@@ -237,19 +247,19 @@ window.__ModuleLoader__.load({
             style: {
               position: 'absolute', inset: 0,
               clipPath: 'polygon(0 13px,12px 0,calc(100% - 12px) 0,100% 13px,100% 31px,calc(100% - 9px) 100%,9px 100%,0 31px)',
-              background: '#373d43',
+              background: shellBg,
             },
           }),
           h('div', {
             style: {
               position: 'absolute', inset: '1px',
               clipPath: 'polygon(0 12px,11px 0,calc(100% - 11px) 0,100% 12px,100% 29px,calc(100% - 8px) 100%,8px 100%,0 29px)',
-              background: 'linear-gradient(#fafafa,#e9ebed)',
+              background: faceBg,
             },
           }),
           h('div', {
             style: { position: 'absolute', left: '30%', right: '30%', bottom: 0, height: '3px',
-              background: '#23282d', clipPath: 'polygon(5px 0,calc(100% - 5px) 0,100% 100%,0 100%)' },
+              background: barBg, clipPath: 'polygon(5px 0,calc(100% - 5px) 0,100% 100%,0 100%)' },
           }),
           h('div', {
             style: { position: 'relative', display: 'flex', alignItems: 'center', gap: '9px', height: '100%',
@@ -259,9 +269,9 @@ window.__ModuleLoader__.load({
               h('circle', { cx: 10, cy: 10, r: 7.6 }),
               h('path', { d: 'M10 2.4v15.2a7.6 7.6 0 0 0 0-15.2Z', fill: ink, fillOpacity: 0.25, stroke: 'none' }),
             ),
-            h('label', { htmlFor: 'cf-tune-range', style: { fontSize: '11px', color: ink, whiteSpace: 'nowrap', letterSpacing: '0.08em', fontWeight: 650 } }, copy.label || '透明度'),
+            h('label', { htmlFor: uid + '-range', style: { fontSize: '11px', color: ink, whiteSpace: 'nowrap', letterSpacing: '0.08em', fontWeight: 650 } }, copy.label || '透明度'),
             h('input', {
-              id: 'cf-tune-range', type: 'range', min: 0, max: 100, step: 1, value: pct,
+              id: uid + '-range', type: 'range', min: 0, max: 100, step: 1, value: pct,
               'aria-label': copy.rangeLabel || '会话和 Composer 联动透明度，数值越大越透明',
               className: 'cf-tune-range',
               onChange: (e) => setPct(Number(e.target.value)),
@@ -270,11 +280,11 @@ window.__ModuleLoader__.load({
             }),
             h('output', { style: { minWidth: '35px', textAlign: 'right',
               fontFamily: 'ui-monospace,SFMono-Regular,Consolas,monospace', fontSize: '11px', fontWeight: 650,
-              color: '#465159', fontVariantNumeric: 'tabular-nums' } }, pct + '%'),
+              color: valueInk, fontVariantNumeric: 'tabular-nums' } }, pct + '%'),
             h('button', {
               type: 'button', 'aria-label': copy.collapseTitle || '收起透明度设置', title: copy.collapseTitle || '收起', onClick: () => setOpen(false),
               style: { width: '21px', height: '21px', display: 'grid', placeItems: 'center', padding: 0,
-                border: 0, background: 'transparent', color: '#6d777e', fontSize: '15px', lineHeight: 1,
+                border: 0, background: 'transparent', color: closeInk, fontSize: '15px', lineHeight: 1,
                 cursor: 'pointer', opacity: 0.76 },
             }, '×'),
           ),
@@ -326,8 +336,13 @@ window.__ModuleLoader__.load({
       const inkFaint = isDark ? 'rgba(240,242,245,0.35)' : 'rgba(28,28,31,0.35)'
       const lineClr = isDark ? 'rgba(255,255,255,0.30)' : 'rgba(28,28,31,0.45)'
       const copy = (theme && theme.copy) || {}
-      const RAIL_W = 34
+      const RAIL_W = num(theme.geometry && theme.geometry.railWidth, 34)
+      const edgeAssetUrl = (theme._available && theme._available.assets && theme._available.assets['decor.sidebarEdge'] && theme.assets && theme.assets['decor.sidebarEdge'])
+        ? ROUTE + theme.assets['decor.sidebarEdge']
+        : null
       const sidebarRect = rectOf('div:has(> [data-slot="sidebar"])')
+      // 宿主测高副本里整棵树在视口外：跳过渲染，避免重复装饰与控制件
+      if (sidebarRect && (sidebarRect.top < -innerHeight || sidebarRect.top > innerHeight * 2)) return null
       const brandRect = rectOf('[class*="_logoRow"]')
       const caps = Array.isArray(theme && theme.capabilities) ? theme.capabilities : []
       const portraitUrl = (theme && theme._available && theme._available.assets && theme._available.assets.portrait && theme.assets && theme.assets.portrait)
@@ -407,7 +422,11 @@ window.__ModuleLoader__.load({
 
       // 侧栏左缘机械装甲导轨（SVG 路径，参考 dsh-mechanical-sidebar-demo）
       if (sidebarRect && caps.includes('profileCard')) {
-        const rail = h('svg', {
+        const rail = edgeAssetUrl ? h('div', {
+          key: 'armor-rail-asset',
+          style: { width: '100%', height: '100%',
+            background: 'url("' + edgeAssetUrl + '") left top/100% 100% no-repeat' },
+        }) : h('svg', {
           key: 'armor-rail',
           viewBox: '0 0 46 941', preserveAspectRatio: 'none',
           width: RAIL_W, height: '100%', style: { display: 'block' },
@@ -537,7 +556,7 @@ window.__ModuleLoader__.load({
           role: 'group',
           'aria-label': tuneCopy.groupLabel || '界面透明度设置',
         }, h(GlassControl, {
-          key: 'glass-control', rect: composerRect, theme, ink, inkSoft, lineClr, copy: tuneCopy,
+          key: 'glass-control', rect: composerRect, theme, ink, inkSoft, lineClr, isDark, copy: tuneCopy,
         })),
       )
     }

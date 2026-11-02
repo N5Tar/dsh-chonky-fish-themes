@@ -73,6 +73,7 @@ const GEOMETRY_RULES = {
   composerFrameSlice: { type: 'number', min: 16, max: 160 },
   composerFrameWidth: { type: 'number', min: 8, max: 64 },
   composerChrome: { type: 'enum', values: new Set(['css', 'frame', 'asset']) },
+  railWidth: { type: 'number', min: 20, max: 64 },
   portraitZoom: { type: 'number', min: 80, max: 300 },
   portraitFocusY: { type: 'number', min: 0, max: 100 },
   profilePortraitHeight: { type: 'number', min: 48, max: 260 },
