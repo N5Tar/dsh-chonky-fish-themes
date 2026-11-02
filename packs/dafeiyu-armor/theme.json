@@ -183,8 +183,7 @@
     "noise": "noise.png",
     "composer.frame": "decor/composer-frame.png",
     "composer.grain": "decor/composer-grain.png",
-    "composer.frameBg": "decor/composer-frame-bg.png",
-    "decor.sidebarEdge": "decor/sidebar-edge.png"
+    "composer.frameBg": "decor/composer-frame-bg.png"
   },
   "geometry": {
     "frameInset": 12,
