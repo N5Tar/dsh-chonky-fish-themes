@@ -10,13 +10,30 @@
     "./locale/*.json": "./locale/*.json",
     "./icon": "./icon.svg"
   },
-  "files": ["index.js", "client.js", "cordis.patch.yml", "locale/*.json", "icon.svg", "packs", "tools"],
+  "files": [
+    "index.js",
+    "client.js",
+    "cordis.patch.yml",
+    "locale/*.json",
+    "icon.svg",
+    "packs",
+    "tools"
+  ],
   "scripts": {
     "validate": "node tools/validate-pack.mjs packs/dafeiyu-mecha",
-    "validate:all": "node tools/validate-pack.mjs packs/dafeiyu-mecha --allow-missing-files"
+    "validate:all": "node tools/build-index.mjs && node tools/validate-pack.mjs packs/dafeiyu-mecha && node tools/validate-pack.mjs packs/dafeiyu-armor",
+    "index": "node tools/build-index.mjs"
   },
   "dsh": {
-    "bundle": { "patch": "./cordis.patch.yml" },
-    "client": { "platform": "web", "immediately": true, "inject": ["@deepseek-ai/dsh-client-ui-theme"] }
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "platform": "web",
+      "immediately": true,
+      "inject": [
+        "@deepseek-ai/dsh-client-ui-theme"
+      ]
+    }
   }
 }

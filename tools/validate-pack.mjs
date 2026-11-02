@@ -26,7 +26,7 @@ const TOP_KEYS = [
   'assets', 'geometry', 'copy', 'decor', 'chrome', 'capabilities', 'customCss',
 ]
 
-const META_KEYS = ['name', 'author', 'version', 'colorScheme']
+const META_KEYS = ['name', 'description', 'author', 'version', 'colorScheme']
 
 const SLOT_RULES = {
   'bg.main': { required: true, ext: ['.webp', '.png'], maxBytes: 500 * 1024 },
@@ -35,7 +35,7 @@ const SLOT_RULES = {
   wordmark: { required: false, ext: ['.svg'], maxBytes: 10 * 1024 },
   signature: { required: false, ext: ['.svg'], maxBytes: 8 * 1024 },
   'decor.hud': { required: false, ext: ['.svg'], maxBytes: 40 * 1024 },
-  noise: { required: false, ext: ['.png'], maxBytes: 8 * 1024 },
+  noise: { required: false, ext: ['.png'], maxBytes: 16 * 1024 },
   'composer.frame': { required: false, ext: ['.png'], maxBytes: 300 * 1024 },
   'composer.grain': { required: false, ext: ['.png'], maxBytes: 24 * 1024 },
   'composer.frameBg': { required: false, ext: ['.png'], maxBytes: 300 * 1024 },

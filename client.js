@@ -15,8 +15,9 @@ window.__ModuleLoader__.load({
   factory(require) {
     const React = require('react')
     const h = React.createElement
-    const PACK_ID = 'dafeiyu-mecha'
-    const ROUTE = '/skin/' + PACK_ID + '/'
+    const DEFAULT_PACK = 'dafeiyu-mecha'
+    const INDEX_ROUTE = '/skin/index.json'
+    const PACK_ROUTE = (id) => '/skin/' + (id || DEFAULT_PACK) + '/'
     const DIAG_ROUTE = '/skin/__diag'
     const LOG = '[chonky-fish-themes]'
 
@@ -29,8 +30,12 @@ window.__ModuleLoader__.load({
       return typeof value === 'number' && Number.isFinite(value) ? value : fallback
     }
 
-    function assetUrl(rel) {
-      return typeof rel === 'string' && rel.length > 0 ? ROUTE + rel : null
+    function assetUrl(rel, packId) {
+      return typeof rel === 'string' && rel.length > 0 ? PACK_ROUTE(packId) + rel : null
+    }
+    /** 当前主题包 id（theme.id 优先，缺失时回退默认包）。 */
+    function packIdOf(theme) {
+      return theme && typeof theme.id === 'string' && theme.id ? theme.id : DEFAULT_PACK
     }
 
     function tint(varName, alpha) {
@@ -115,41 +120,74 @@ window.__ModuleLoader__.load({
       }
     }
 
-    /* ---- 主题模式：默认 / 大肥鱼·白鲨轻甲（设置 → 通用 里的一行） ---- */
-    const MODE_KEY = 'cf-theme-mode'
-    const MODES = ['default', 'mecha']
-    function readThemeMode() {
+    /* ---- 主题包目录：默认（DSH 原生）/ 任意 packs/<id>（设置 → 通用 里的一行） ---- */
+    const PACK_KEY = 'cf-theme-pack'
+    const LEGACY_MODE_KEY = 'cf-theme-mode'
+
+    function readActivePack() {
       try {
-        const v = localStorage.getItem(MODE_KEY)
-        return MODES.includes(v) ? v : 'mecha'
+        const stored = localStorage.getItem(PACK_KEY)
+        if (stored) return stored
+        const legacy = localStorage.getItem(LEGACY_MODE_KEY)
+        if (legacy === 'default') return 'default'
+        return null // null = 未选择，运行时落到目录里的第一个主题
       } catch (e) {
-        return 'mecha'
+        return null
       }
     }
-    let themeMode = readThemeMode()
-    const modeSubs = new Set()
-    function setThemeMode(next) {
-      themeMode = MODES.includes(next) ? next : 'default'
-      try { localStorage.setItem(MODE_KEY, themeMode) } catch (e) {}
-      for (const fn of Array.from(modeSubs)) {
-        try { fn(themeMode) } catch (e) {}
+    let activePack = readActivePack()
+    let packCatalog = []
+    let activeLocaleId = 'zh-CN'
+    const packSubs = new Set()
+
+    function notifyPacks() {
+      for (const fn of Array.from(packSubs)) {
+        try { fn() } catch (e) {}
       }
     }
-    function useThemeMode() {
-      const [mode, setMode] = React.useState(themeMode)
+    function setActivePack(next) {
+      activePack = typeof next === 'string' && next ? next : null
+      try {
+        localStorage.setItem(PACK_KEY, activePack || '')
+        localStorage.removeItem(LEGACY_MODE_KEY)
+      } catch (e) {}
+      notifyPacks()
+    }
+    function setPackCatalog(list) {
+      packCatalog = Array.isArray(list) ? list : []
+      notifyPacks()
+    }
+    /** 实际生效的包：'default' 表示回原生；null/失效时回退目录首个。 */
+    function resolvePackId() {
+      if (activePack === 'default') return null
+      if (activePack && packCatalog.some((p) => p.id === activePack)) return activePack
+      // 未选择时优先默认包，其次目录第一个
+      if (packCatalog.some((p) => p.id === DEFAULT_PACK)) return DEFAULT_PACK
+      return packCatalog.length > 0 ? packCatalog[0].id : null
+    }
+    function usePacks() {
+      const [snap, setSnap] = React.useState({ catalog: packCatalog, active: activePack })
       React.useEffect(() => {
-        const fn = (m) => setMode(m)
-        modeSubs.add(fn)
-        return () => modeSubs.delete(fn)
+        const fn = () => setSnap({ catalog: packCatalog, active: activePack })
+        packSubs.add(fn)
+        return () => packSubs.delete(fn)
       }, [])
-      return mode
+      return snap
+    }
+    /** 主题显示名：manifest 的 meta.name 是 {zh,en}；按当前界面语言取。 */
+    function packLabel(pack) {
+      const name = pack && pack.name
+      if (!name) return (pack && pack.id) || ''
+      if (typeof name === 'string') return name
+      const zh = /^zh/i.test(activeLocaleId || '')
+      return (zh ? name.zh : name.en) || name.zh || name.en || (pack && pack.id) || ''
     }
 
     /* ---- 本地化（复用宿主 locale 服务；缺字典时回退中文） ---- */
     const LOCALE_NS = 'chonky-fish-themes'
     const LOCALE_DICT = {
-      zh: { 'theme.label': '主题', 'theme.default': '默认', 'theme.mecha': '大肥鱼·白鲨轻甲' },
-      en: { 'theme.label': 'Theme', 'theme.default': 'Default', 'theme.mecha': 'Dafeiyu · Light Armor' },
+      zh: { 'theme.label': '主题', 'theme.default': '默认' },
+      en: { 'theme.label': 'Theme', 'theme.default': 'Default' },
     }
     let translateRef = null
     const localeSubs = new Set()
@@ -171,17 +209,18 @@ window.__ModuleLoader__.load({
       }, [])
     }
 
-    /** 设置 → 通用 里的一行：主题选择（默认 DSH / 大肥鱼·白鲨轻甲）。 */
-    function ThemeModeRow() {
-      const mode = useThemeMode()
+    /** 设置 → 通用 里的一行：主题包选择（默认 DSH + 目录里的每个主题）。 */
+    function ThemePackRow() {
+      const { catalog, active } = usePacks()
       useLocaleVersion()
       const label = t('theme.label', '主题')
+      const effective = active === 'default' ? 'default' : (resolvePackId() || 'default')
       const options = [
         { id: 'default', text: t('theme.default', '默认') },
-        { id: 'mecha', text: t('theme.mecha', '大肥鱼·白鲨轻甲') },
+        ...catalog.map((pack) => ({ id: pack.id, text: packLabel(pack) })),
       ]
       return h('div', {
-        'data-skin-setting': 'theme-mode',
+        'data-skin-setting': 'theme-pack',
         style: {
           display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px',
           padding: '14px 0', borderBottom: '1px solid var(--dsw-alias-border-l2)',
@@ -197,15 +236,15 @@ window.__ModuleLoader__.load({
         }, options.map((opt) => h('button', {
           key: opt.id,
           type: 'button',
-          'aria-pressed': mode === opt.id,
-          onClick: () => setThemeMode(opt.id),
+          'aria-pressed': effective === opt.id,
+          onClick: () => setActivePack(opt.id === 'default' ? 'default' : opt.id),
           style: {
             padding: '5px 12px', fontSize: '12px', lineHeight: 1.2, borderRadius: '4px', cursor: 'pointer',
             border: 0,
-            background: mode === opt.id ? 'var(--dsw-alias-bg-layer-1)' : 'transparent',
-            color: mode === opt.id ? 'var(--dsw-alias-label-primary)' : 'var(--dsw-alias-label-secondary)',
-            fontWeight: mode === opt.id ? 600 : 400,
-            boxShadow: mode === opt.id ? '0 1px 2px rgba(0,0,0,0.10)' : 'none',
+            background: effective === opt.id ? 'var(--dsw-alias-bg-layer-1)' : 'transparent',
+            color: effective === opt.id ? 'var(--dsw-alias-label-primary)' : 'var(--dsw-alias-label-secondary)',
+            fontWeight: effective === opt.id ? 600 : 400,
+            boxShadow: effective === opt.id ? '0 1px 2px rgba(0,0,0,0.10)' : 'none',
           },
         }, opt.text))),
       )
@@ -390,7 +429,6 @@ window.__ModuleLoader__.load({
 
     function DecorOverlay() {
       const theme = useTheme()
-      const mode = useThemeMode()
       const [, tick] = React.useState(0)
       React.useEffect(() => {
         const bump = () => tick((n) => n + 1)
@@ -423,7 +461,7 @@ window.__ModuleLoader__.load({
         }
       })
       const decor = theme && Array.isArray(theme.decor) ? theme.decor : []
-      if (mode !== 'mecha' || !theme) return null
+      if (!theme) return null
       const anchors = computeAnchors()
       const inHero = Boolean(document.querySelector('[data-content-phase="hero"]'))
       const children = []
@@ -435,7 +473,7 @@ window.__ModuleLoader__.load({
       const copy = (theme && theme.copy) || {}
       const RAIL_W = num(theme.geometry && theme.geometry.railWidth, 34)
       const edgeAssetUrl = (theme._available && theme._available.assets && theme._available.assets['decor.sidebarEdge'] && theme.assets && theme.assets['decor.sidebarEdge'])
-        ? ROUTE + theme.assets['decor.sidebarEdge']
+        ? assetUrl(theme.assets['decor.sidebarEdge'], packIdOf(theme))
         : null
       const sidebarRect = rectOf('div:has(> [data-slot="sidebar"])')
       // 宿主测高副本里整棵树在视口外：跳过渲染，避免重复装饰与控制件
@@ -443,7 +481,7 @@ window.__ModuleLoader__.load({
       const brandRect = rectOf('[class*="_logoRow"]')
       const caps = Array.isArray(theme && theme.capabilities) ? theme.capabilities : []
       const portraitUrl = (theme && theme._available && theme._available.assets && theme._available.assets.portrait && theme.assets && theme.assets.portrait)
-        ? ROUTE + theme.assets.portrait
+        ? assetUrl(theme.assets.portrait, packIdOf(theme))
         : null
       const portraitZoom = num(theme && theme.geometry && theme.geometry.portraitZoom, 170)
       const portraitFocusY = num(theme && theme.geometry && theme.geometry.portraitFocusY, 34)
@@ -921,7 +959,7 @@ window.__ModuleLoader__.load({
           return (
             '@font-face{font-family:"' + f.family + '";font-weight:' + weight +
             ';font-style:' + style + ';font-display:' + display +
-            ';src:url("' + ROUTE + f.src + '") format("woff2")}'
+            ';src:url("' + assetUrl(f.src, packIdOf(theme)) + '") format("woff2")}'
           )
         })
         .join('\n')
@@ -941,13 +979,13 @@ window.__ModuleLoader__.load({
       const noiseOpacity = num(geometry.noiseOpacity, 0)
       const darkScrim = num(geometry.darkScrim, 0)
 
-      const bg = assetAvailable['bg.main'] ? assetUrl(theme.assets && theme.assets['bg.main']) : null
-      const noise = available.assets && available.assets.noise ? assetUrl(theme.assets && theme.assets.noise) : null
+      const bg = assetAvailable['bg.main'] ? assetUrl(theme.assets && theme.assets['bg.main'], packIdOf(theme)) : null
+      const noise = available.assets && available.assets.noise ? assetUrl(theme.assets && theme.assets.noise, packIdOf(theme)) : null
       const frame = assetAvailable['composer.frame']
-        ? assetUrl(theme.assets && theme.assets['composer.frame'])
+        ? assetUrl(theme.assets && theme.assets['composer.frame'], packIdOf(theme))
         : null
       const grain = assetAvailable['composer.grain']
-        ? assetUrl(theme.assets && theme.assets['composer.grain'])
+        ? assetUrl(theme.assets && theme.assets['composer.grain'], packIdOf(theme))
         : null
       const frameSlice = num(geometry.composerFrameSlice, 96)
       const frameWidth = num(geometry.composerFrameWidth, 26)
@@ -964,7 +1002,7 @@ window.__ModuleLoader__.load({
       const chatGlassPadY = num(geometry.chatGlassPadY, 12)
       const artOpacity = num(geometry.artOpacity, 1)
       const frameBg = assetAvailable['composer.frameBg']
-        ? assetUrl(theme.assets && theme.assets['composer.frameBg'])
+        ? assetUrl(theme.assets && theme.assets['composer.frameBg'], packIdOf(theme))
         : null
 
       const out = []
@@ -982,9 +1020,9 @@ window.__ModuleLoader__.load({
           '--cf-dark-scrim:' + darkScrim + ';' +
           '--cf-asset-bg-main:' + (bg ? 'url("' + bg + '")' : 'none') + ';' +
           '--cf-asset-wordmark:' +
-            (assetAvailable.wordmark ? 'url("' + assetUrl(theme.assets.wordmark) + '")' : 'none') + ';' +
+            (assetAvailable.wordmark ? 'url("' + assetUrl(theme.assets.wordmark, packIdOf(theme)) + '")' : 'none') + ';' +
           '--cf-asset-portrait:' +
-            (assetAvailable.portrait ? 'url("' + assetUrl(theme.assets.portrait) + '")' : 'none') + ';' +
+            (assetAvailable.portrait ? 'url("' + assetUrl(theme.assets.portrait, packIdOf(theme)) + '")' : 'none') + ';' +
           '}',
       )
 
@@ -1319,12 +1357,14 @@ window.__ModuleLoader__.load({
           const offs = []
           try {
             const snap = ctx.locale.getLocale()
+            activeLocaleId = snap.active || activeLocaleId
             for (const def of snap.locales) {
               const dict = /^zh/i.test(def.id) ? LOCALE_DICT.zh : LOCALE_DICT.en
               offs.push(ctx.locale.register(LOCALE_NS, def.id, dict))
             }
             translateRef = ctx.locale.bind(LOCALE_NS)
             offs.push(ctx.locale.subscribe(() => {
+              try { activeLocaleId = ctx.locale.getLocale().active || activeLocaleId } catch (e) {}
               for (const fn of Array.from(localeSubs)) {
                 try { fn() } catch (e) {}
               }
@@ -1342,13 +1382,14 @@ window.__ModuleLoader__.load({
 
         ctx.slots.inject('settings.general.item', () => ctx.slots.register({
           name: 'settings.general.item',
-          id: 'chonky-fish-theme-mode',
+          id: 'chonky-fish-theme-pack',
           order: 10.5,
-        }, ThemeModeRow))
+        }, ThemePackRow))
 
         ctx.effect(() => {
           let disposed = false
           let themeCache = null
+          let loadedId = null
           let frameReady = false
           let applied = []
           let probed = false
@@ -1365,7 +1406,12 @@ window.__ModuleLoader__.load({
           const sync = () => {
             if (disposed) return
             disposeApplied()
-            if (themeMode !== 'mecha' || !themeCache) return
+            const packId = resolvePackId()
+            if (!packId || !themeCache || loadedId !== packId) {
+              setTheme(null)
+              return
+            }
+            setTheme(themeCache)
             applyPack(ctx, themeCache, applied, frameReady)
           }
 
@@ -1374,19 +1420,19 @@ window.__ModuleLoader__.load({
             probed = true
             const frameRel = theme.assets && theme.assets['composer.frame']
             const frameAvailable = Boolean(theme._available && theme._available.assets && theme._available.assets['composer.frame'])
-            const frameUrl = frameAvailable && frameRel ? assetUrl(frameRel) : null
+            const frameUrl = frameAvailable && frameRel ? assetUrl(frameRel, packIdOf(theme)) : null
             if (!frameUrl) { sync(); return }
             try {
               const probe = new Image()
               probe.onload = () => {
                 if (disposed) return
                 frameReady = true
-                diag({ stage: 'frame-loaded', w: probe.naturalWidth, h: probe.naturalHeight })
+                diag({ stage: 'frame-loaded', pack: packIdOf(theme), w: probe.naturalWidth, h: probe.naturalHeight })
                 sync()
               }
               probe.onerror = () => {
                 if (disposed) return
-                diag({ stage: 'frame-error' })
+                diag({ stage: 'frame-error', pack: packIdOf(theme) })
                 sync()
               }
               probe.src = frameUrl
@@ -1396,38 +1442,61 @@ window.__ModuleLoader__.load({
             }
           }
 
-          const onMode = () => {
-            if (themeMode === 'mecha' && !themeCache) return
-            sync()
-            if (themeMode === 'mecha' && themeCache) probeFrame(themeCache)
+          const loadTheme = (packId) => {
+            disposeApplied()
+            setTheme(null)
+            if (!packId) { themeCache = null; loadedId = null; return }
+            if (loadedId === packId && themeCache) { sync(); return }
+            themeCache = null
+            loadedId = null
+            probed = false
+            frameReady = false
+            fetch(PACK_ROUTE(packId) + 'theme.json', { cache: 'no-store' })
+              .then((res) => {
+                if (!res.ok) throw new Error('theme.json HTTP ' + res.status)
+                return res.json()
+              })
+              .then((theme) => {
+                if (disposed || resolvePackId() !== packId) return
+                themeCache = theme
+                loadedId = packId
+                diag({ stage: 'theme-loaded', pack: packId })
+                probeFrame(theme)
+              })
+              .catch((err) => {
+                console.error(LOG, 'theme load failed:', packId, err)
+                diag({ stage: 'theme-fetch-error', pack: packId, message: String((err && err.message) || err) })
+                sync()
+              })
           }
-          modeSubs.add(onMode)
 
-          const bgProbe = new Image()
-          bgProbe.onload = () => diag({ stage: 'bg-loaded', w: bgProbe.naturalWidth, h: bgProbe.naturalHeight })
-          bgProbe.onerror = () => diag({ stage: 'bg-error', msg: 'image failed' })
-          bgProbe.src = ROUTE + 'bg.webp'
+          const onPacks = () => loadTheme(resolvePackId())
+          packSubs.add(onPacks)
 
-          fetch(ROUTE + 'theme.json', { cache: 'no-store' })
+          fetch(INDEX_ROUTE, { cache: 'no-store' })
             .then((res) => {
-              if (!res.ok) throw new Error('theme.json HTTP ' + res.status)
+              if (!res.ok) throw new Error('__index HTTP ' + res.status)
               return res.json()
             })
-            .then((theme) => {
+            .then((json) => {
               if (disposed) return
-              themeCache = theme
-              setTheme(theme)
-              if (themeMode === 'mecha') probeFrame(theme)
+              const list = Array.isArray(json && json.packs) ? json.packs : []
+              setPackCatalog(list)
+              diag({ stage: 'packs', count: list.length, ids: list.map((p) => p.id) })
+              loadTheme(resolvePackId())
             })
             .catch((err) => {
-              console.error(LOG, 'theme load failed:', err)
-              diag({ stage: 'theme-fetch-error', message: String((err && err.message) || err) })
+              console.error(LOG, 'pack index failed:', err)
+              diag({ stage: 'index-error', message: String((err && err.message) || err) })
+              setPackCatalog([])
+              loadTheme(null)
             })
 
           return () => {
             disposed = true
-            modeSubs.delete(onMode)
+            packSubs.delete(onPacks)
             disposeApplied()
+            setTheme(null)
           }
         }, 'chonky-fish-themes: skin')
       },

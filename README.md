@@ -35,14 +35,30 @@ node --check client.js && node --check index.js
 - 只改 `theme.json` 不会自动重载，需要触碰 `client.js` 或重启应用；
 - 诊断日志默认关闭，排障时以 `DSH_SKIN_DIAG=1` 启动宿主，客户端重量级采集用 `localStorage.setItem('cf-diag','1')`。
 
-## 主题切换
+## 主题切换（多主题）
 
-安装后：**设置 → 通用设置 → 主题**，两个选项：
+安装后：**设置 → 通用设置 → 主题**，选项由 `packs/index.json` 动态生成：
 
 - **默认**：注销引擎注入的样式与 token 覆盖，回到 DSH 原生外观（无需重启）；
-- **大肥鱼·白鲨轻甲**：重新注入皮肤（配色、底图、玻璃、装甲导轨、资料卡）。
+- **每个已安装主题**：读取该包自己的 `theme.json`（tokens / geometry / copy / decor / assets）重新渲染。
 
-选择存在 `localStorage['cf-theme-mode']`（`mecha` 缺省 / `default`），刷新后保持。切换走的路径是 `ctx.locale` + `settings.general.item` 槽位，不修改宿主文件。
+当前内置两个主题包：
+
+| id | 名称 | 说明 |
+| --- | --- | --- |
+| `dafeiyu-mecha` | 大肥鱼·白鲨轻甲 | 基础主题 |
+| `dafeiyu-armor` | 大肥鱼·白鲨装甲 | 机甲化变体（白色外骨骼装甲、蓝色微光） |
+
+选择存在 `localStorage['cf-theme-pack']`（`default` 或包 id；旧的 `cf-theme-mode` 会自动迁移），刷新后保持。
+
+### 新增一个主题
+
+1. 新建 `packs/<id>/`：`theme.json` + 素材（可直接复制现有主题包改 `id` / `meta.name` / 素材）；
+2. 跑 `npm run index` 重建 `packs/index.json`；
+3. 重载客户端（改 `client.js` 触发 HMR，或刷新页面）；
+4. `npm run validate:all` 确认每个包 0 error / 0 warning。
+
+主题之间完全独立：名字、`theme.json`、素材互不共享；引擎不写死任何包 id。
 
 ## 透明玻璃
 

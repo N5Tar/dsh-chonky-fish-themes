@@ -1,0 +1,27 @@
+{
+  "packs": [
+    {
+      "id": "dafeiyu-armor",
+      "name": {
+        "zh": "大肥鱼·白鲨装甲",
+        "en": "Dafeiyu · White Shark Armor"
+      },
+      "description": {
+        "zh": "机甲化变体：白色外骨骼装甲、蓝色微光、同角色",
+        "en": "Armored variant: white exosuit, faint blue glow, same character"
+      },
+      "version": "0.1.0",
+      "colorScheme": "light"
+    },
+    {
+      "id": "dafeiyu-mecha",
+      "name": {
+        "zh": "大肥鱼·白鲨轻甲",
+        "en": "Dafeiyu · White Shark Light Armor"
+      },
+      "description": null,
+      "version": "0.1.0",
+      "colorScheme": "light"
+    }
+  ]
+}
