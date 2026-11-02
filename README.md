@@ -24,6 +24,18 @@ plugin_manager install_bundle /path/to/dsh-chonky-fish-themes
 
 安装后 `cordis.patch.yml` 会插入 `@local/dsh-chonky-fish-themes`，Host 起 `/skin` 路由，Client 注册 `shell.overlay` 装饰层。
 
+## 预览 HTML（不装应用也能看效果）
+
+```bash
+npm run preview     # 由每个 packs/<id>/theme.json 生成 preview/<id>.html
+```
+
+生成的页面**模拟 DSH 客户端结构**（侧栏 / 主栏 / 会话列 / 输入卡 / 右栏装饰 / 底栏），素材直接引用 `packs/<id>/` 里的文件：
+
+- 用来在真实布局里验收图片素材，而不是只看设计稿；
+- 可直接复制改造成独立的主题演示页；
+- 侧栏左缘导轨、底部装甲条、透明度拉手等**由 CSS 绘制**，不依赖图片。
+
 ## 开发
 
 ```bash
