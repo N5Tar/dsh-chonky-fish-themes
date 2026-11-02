@@ -205,7 +205,7 @@ window.__ModuleLoader__.load({
           }, portraitUrl ? null : h('div', { style: { fontFamily: 'var(--ds-font-family-code)', fontSize: '9px', letterSpacing: '0.24em', color: inkFaint } }, 'PORTRAIT')),
           h('div', { style: { fontFamily: 'var(--dsw-font-family-brand)', fontSize: '24px', fontWeight: 700, lineHeight: 1.1, color: ink, letterSpacing: '0.02em' } }, copy.profile.name),
           copy.profile.subtitle ? h('div', { style: { fontSize: '11px', color: inkSoft, lineHeight: 1.5 } }, copy.profile.subtitle) : null,
-          copy.profile.signature ? h('div', { style: { fontFamily: 'var(--ds-font-family-code)', fontSize: '16px', fontStyle: 'italic', color: inkFaint, opacity: 0.85 } }, copy.profile.signature) : null,
+          copy.profile.signature ? h('div', { style: { fontFamily: '"Snell Roundhand", "HanziPen SC", "Hannotate SC", "Bradley Hand", cursive', fontSize: '21px', fontStyle: 'normal', letterSpacing: '0.01em', color: inkSoft, opacity: 0.9, marginTop: '-2px' } }, copy.profile.signature) : null,
           h('div', { style: { paddingTop: '6px', borderTop: '1px solid ' + (isDark ? 'rgba(255,255,255,0.14)' : 'rgba(28,28,31,0.12)'), display: 'flex', justifyContent: 'space-between' } },
             h('span', { style: { fontFamily: 'var(--ds-font-family-code)', fontSize: '9px', letterSpacing: '0.2em', color: inkSoft } }, copy.profile.label || ''),
             h('span', { style: { fontFamily: 'var(--ds-font-family-code)', fontSize: '9px', letterSpacing: '0.2em', color: inkFaint } }, '/////'),
@@ -760,3 +760,5 @@ window.__ModuleLoader__.load({
 /* sync 1793600938 */
 
 /* sync 1793601301 */
+
+/* sync 1793603402 */

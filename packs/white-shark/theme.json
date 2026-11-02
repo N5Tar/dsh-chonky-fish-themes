@@ -267,15 +267,15 @@
       "name": "大肥鱼",
       "subtitle": "与世界，保持适当距离。",
       "label": "DSH ASSISTANT",
-      "signature": "大肥鱼"
+      "signature": "Dafeiyu"
     }
   },
   "decor": [
     {
       "kind": "text",
       "anchor": "hero.topLeft",
-      "x": "2%",
-      "y": "4%",
+      "x": "2.5%",
+      "y": "3.5%",
       "text": "OCEANIC\nPROTOCOL",
       "font": "code",
       "size": 11,
@@ -287,13 +287,13 @@
     {
       "kind": "text",
       "anchor": "hero.topLeft",
-      "x": "2%",
-      "y": "26%",
+      "x": "2.5%",
+      "y": "10%",
       "text": "ANALYZE\nREASON\nPLAN\nEXECUTE",
       "font": "code",
-      "size": 10,
-      "letterSpacing": "0.10em",
-      "lineHeight": 1.9,
+      "size": 9.5,
+      "letterSpacing": "0.12em",
+      "lineHeight": 1.7,
       "opacity": 0.45,
       "color": "label-tertiary"
     },
@@ -301,26 +301,26 @@
       "kind": "text",
       "anchor": "hero.title",
       "x": 0,
-      "y": -88,
+      "y": -118,
       "text": "//02A",
       "font": "brand",
-      "size": 56,
-      "letterSpacing": "0.02em",
+      "size": 52,
+      "letterSpacing": "0.01em",
       "lineHeight": 1,
-      "opacity": 0.3,
+      "opacity": 0.26,
       "color": "label-tertiary"
     },
     {
       "kind": "text",
       "anchor": "hero.title",
       "x": 0,
-      "y": -28,
+      "y": -38,
       "text": "GREAT WHITE CLASS",
       "font": "code",
-      "size": 12,
-      "letterSpacing": "0.30em",
+      "size": 11,
+      "letterSpacing": "0.32em",
       "lineHeight": 1,
-      "opacity": 0.5,
+      "opacity": 0.45,
       "color": "label-tertiary"
     },
     {
