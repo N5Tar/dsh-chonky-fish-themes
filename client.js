@@ -162,12 +162,12 @@ window.__ModuleLoader__.load({
         },
           h('div', {
             style: {
-              height: '132px', border: '1px solid rgba(28,28,31,0.18)',
+              height: '84px', border: '1px solid rgba(28,28,31,0.18)',
               backgroundImage: 'repeating-linear-gradient(45deg,rgba(28,28,31,0.05) 0 5px,transparent 5px 11px)',
               display: 'grid', placeItems: 'center',
             },
           }, h('div', { style: { fontFamily: 'var(--ds-font-family-code)', fontSize: '9px', letterSpacing: '0.24em', color: 'var(--dsw-alias-label-tertiary)' } }, 'PORTRAIT')),
-          h('div', { style: { fontFamily: 'var(--dsw-font-family-brand)', fontSize: '26px', fontWeight: 700, lineHeight: 1.1, color: 'var(--dsw-alias-label-primary)', letterSpacing: '0.02em' } }, copy.profile.name),
+          h('div', { style: { fontFamily: 'var(--dsw-font-family-brand)', fontSize: '24px', fontWeight: 700, lineHeight: 1.1, color: 'var(--dsw-alias-label-primary)', letterSpacing: '0.02em' } }, copy.profile.name),
           copy.profile.subtitle ? h('div', { style: { fontSize: '11px', color: 'var(--dsw-alias-label-secondary)', lineHeight: 1.5 } }, copy.profile.subtitle) : null,
           copy.profile.signature ? h('div', { style: { fontFamily: 'var(--ds-font-family-code)', fontSize: '16px', fontStyle: 'italic', color: 'var(--dsw-alias-label-tertiary)', opacity: 0.85 } }, copy.profile.signature) : null,
           h('div', { style: { paddingTop: '6px', borderTop: '1px solid rgba(28,28,31,0.12)', display: 'flex', justifyContent: 'space-between' } },
@@ -311,6 +311,17 @@ window.__ModuleLoader__.load({
       out.push({ label: 'decorNodes', count: decors.length, nodes: decors.slice(0, 8) })
       out.push({ label: 'anchors', anchors: computeAnchors() })
       out.push({ label: 'decorData', data: (currentTheme && currentTheme.decor || []).map((d) => ({ kind: d.kind, anchor: d.anchor, x: d.x, y: d.y })) })
+
+      // 侧栏滚动诊断
+      const sbCol = document.querySelector('div:has(> [data-slot="sidebar"])')
+      const sbRoot = document.querySelector('[data-slot="sidebar"] > div')
+      const sbInfo = (el, name) => {
+        if (!el) return { name, found: false }
+        const cs = getComputedStyle(el)
+        return { name, cls: String(el.className || '').slice(0, 40), h: el.clientHeight, sh: el.scrollHeight,
+          overflowY: cs.overflowY, display: cs.display, flex: cs.flex, minH: cs.minHeight, maxH: cs.maxHeight }
+      }
+      out.push({ label: 'sidebarScroll', col: sbInfo(sbCol, 'col'), root: sbInfo(sbRoot, 'root'), region: sbInfo(document.querySelector('[data-slot="sidebar.workspaces"]'), 'region') })
       out.push({ label: 'phase', hero: Boolean(document.querySelector('[data-content-phase="hero"]')), phaseEl: (document.querySelector('[data-content-phase]') || {}).getAttribute ? document.querySelector('[data-content-phase]').getAttribute('data-content-phase') : null })
       return out
     }
@@ -432,8 +443,10 @@ window.__ModuleLoader__.load({
       out.push(
         'div:has(> [data-slot="sidebar"]){background:' +
           tint('--dsw-specific-sidebar-fill', sidebarAlpha) + '!important}',
-        '[data-slot="sidebar"] > div > *:nth-child(3){margin-top:306px!important}',
+        '[data-slot="sidebar"] > div > *:nth-child(3){margin-top:214px!important}',
         '[data-slot="sidebar"] > div{overflow-y:auto;scrollbar-width:none}',
+        'div:has(> [data-slot="sidebar.workspaces"]){flex:1 1 auto!important;min-height:280px!important;' +
+          'overflow-y:auto!important;overflow-x:hidden!important;display:flex!important;flex-direction:column}',
         // 会话态：不再整体加白/模糊，改成「左侧渐隐白纱」，右侧保持底图清晰
         'div:has(> [data-slot="main"]){background:linear-gradient(90deg,' +
           'rgba(255,255,255,' + centerAlpha + ') 0%,' +
