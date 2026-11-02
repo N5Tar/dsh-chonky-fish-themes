@@ -38,6 +38,8 @@ node --check client.js && node --check index.js
 
 输入卡与消息列共用一套「透明度」：`theme.geometry.composerGlassAlpha` 是默认值，用户在上缘拉手（⌃）里调过之后以 `localStorage['cf-glass-transparency']` 为准，`blur = round(12 × alpha)` 联动。
 
+已清理的未实现声明：`bg.wide`、`wordmark`、`signature`、`decor.hud`、`icon`、`customCss`、`fonts`、`chrome.*`（引擎不读取）。`validate-pack` 现在 0 error / 0 warning。
+
 ## 主题包契约
 
 `theme.json` 的完整字段、取值范围与验收口径见文档仓库 `docs/skin/theme-pack-spec.md`（v0.7）。本仓库只放代码与素材。
@@ -50,5 +52,3 @@ node --check client.js && node --check index.js
 | `portrait.webp` 资料卡头像 | ✅ 已接入 |
 | `decor/composer-frame*.png` 输入卡外框 | ✅ 已接入（暗色版待补） |
 | `decor/sidebar-edge.png` 侧栏装甲导轨 | ⬜ 槽位已接，缺素材时用内置 SVG |
-| `wordmark.svg` / `signature.svg` / `decor/hud.svg` | ⬜ 未实现（引擎当前用代码绘制） |
-| `fonts/*.woff2` | ⬜ 未生成（当前用系统字体） |

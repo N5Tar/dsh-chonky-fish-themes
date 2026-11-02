@@ -40,7 +40,8 @@ const SLOT_RULES = {
   'composer.grain': { required: false, ext: ['.png'], maxBytes: 24 * 1024 },
   'composer.frameBg': { required: false, ext: ['.png'], maxBytes: 300 * 1024 },
   'decor.sidebarEdge': { required: false, ext: ['.png', '.svg', '.webp'], maxBytes: 80 * 1024 },
-  icon: { required: true, ext: ['.svg', '.png', '.webp'], maxBytes: 256 * 1024 },
+  // 预留给未来的主题选择器；引擎当前不读取，故非必填
+  icon: { required: false, ext: ['.svg', '.png', '.webp'], maxBytes: 256 * 1024 },
 }
 
 const CAPABILITIES = new Set([
