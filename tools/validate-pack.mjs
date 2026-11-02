@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * validate-pack — 主题包校验器（契约见 docs/skin/theme-pack-spec.md v0.1.1）
+ * validate-pack — 主题包校验器：字段、枚举、范围、文件存在性以本脚本的规则表为准
  *
  * 用法：
  *   node tools/validate-pack.mjs [packs/<id>] [--allow-missing-files] [--json]
@@ -8,7 +8,7 @@
  * 退出码：0 = 通过（可能有警告）；1 = 有错误；2 = 用法/解析错误。
  *
  * 只做静态校验：JSON 结构、枚举、能力依赖、文件存在性与体积。
- * 图像级检查（尺寸/透明/静区对比度）不在本脚本范围，见 asset-brief 的自检清单。
+ * 图像级检查（尺寸 / 透明度 / 静区对比度）不在本脚本范围，需人工或独立脚本核对。
  */
 
 import { readFileSync, existsSync, statSync } from 'node:fs'

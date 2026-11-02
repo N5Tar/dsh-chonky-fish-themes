@@ -42,7 +42,7 @@ node --check client.js && node --check index.js
 
 ## 主题包契约
 
-`theme.json` 的完整字段、取值范围与验收口径见文档仓库 `docs/skin/theme-pack-spec.md`（v0.7）。本仓库只放代码与素材。
+`theme.json` 是主题包与本引擎之间的唯一数据接口：字段、取值范围与验收口径由本仓库的 `tools/validate-pack.mjs` 校验（运行 `node tools/validate-pack.mjs packs/<id>` 即得到当前契约的判定结果）。本仓库只放代码与素材。
 
 ## 素材状态
 
