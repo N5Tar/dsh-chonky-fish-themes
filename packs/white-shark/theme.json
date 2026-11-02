@@ -255,14 +255,16 @@
     "portraitFocusY": 38,
     "profilePortraitHeight": 210,
     "composerMaxWidth": 720,
-    "composerMinHeight": 178,
-    "composerPaddingY": 24,
-    "composerPaddingX": 28,
+    "composerMinHeight": 212,
+    "composerPaddingY": 26,
+    "composerPaddingX": 32,
     "composerGlassAlpha": 0.12,
     "composerGlassInset": 10,
     "composerBlur": 1,
     "artOpacity": 1,
-    "railWidth": 34
+    "railWidth": 34,
+    "chatGlassPadX": 22,
+    "chatGlassPadY": 12
   },
   "copy": {
     "mode": "official",

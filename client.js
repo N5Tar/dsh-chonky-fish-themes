@@ -862,7 +862,9 @@ window.__ModuleLoader__.load({
       const glass = glassState(theme)
       const glassAlpha = glass.alpha
       const glassBlur = glass.blur
-      const composerGlassInset = num(geometry.composerGlassInset, 10)
+      const composerGlassInset = num(geometry.composerGlassInset, 12)
+      const chatGlassPadX = num(geometry.chatGlassPadX, 22)
+      const chatGlassPadY = num(geometry.chatGlassPadY, 12)
       const artOpacity = num(geometry.artOpacity, 1)
       const frameBg = assetAvailable['composer.frameBg']
         ? assetUrl(theme.assets && theme.assets['composer.frameBg'])
@@ -988,7 +990,8 @@ window.__ModuleLoader__.load({
       out.push(
         '[data-conversation-region="chat"] [class*="_column"]{background:rgba(var(--cf-chat-rgb),var(--cf-chat-alpha))!important;' +
           'backdrop-filter:blur(var(--cf-chat-blur));-webkit-backdrop-filter:blur(var(--cf-chat-blur));' +
-          'border-radius:2px!important}' +
+          'border-radius:3px!important;box-sizing:border-box!important;' +
+          'padding:' + chatGlassPadY + 'px ' + chatGlassPadX + 'px!important}' +
         '[data-conversation-region="chat"] [class*="_column"] [class*="_flowItem"]{background:transparent!important}',
       )
 
@@ -1131,6 +1134,18 @@ window.__ModuleLoader__.load({
           )
         }
       }
+
+      /* --- 暗色下的输入卡控件配色（此前硬编码亮色导致不可见） --- */
+      out.push(
+        'body[data-ds-dark-theme] [data-composer-card] [class*="_add"]{color:#e8ecef!important;' +
+          'border-color:rgba(255,255,255,0.30)!important;background:transparent!important}',
+        'body[data-ds-dark-theme] [data-composer-card] [class*="_primary"]{background:#e8ecef!important;color:#14181d!important}',
+        'body[data-ds-dark-theme] [data-composer-card] [class*="_primary"] svg{color:#14181d!important}',
+        'body[data-ds-dark-theme] [data-composer-card] [class*="_placeholder"]{color:#8f979e!important}',
+        'body[data-ds-dark-theme] [data-slot="conversation.input.permission"] button{color:#ff8f85!important;' +
+          'background:rgba(255,90,80,0.16)!important}',
+        'body[data-ds-dark-theme] [data-slot="conversation.input.permission"] button svg{color:#ff8f85!important}',
+      )
 
       /* --- noise texture ------------------------------------------------------- */
       if (noise && noiseOpacity > 0) {
