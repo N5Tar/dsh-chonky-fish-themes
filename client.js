@@ -568,7 +568,7 @@ window.__ModuleLoader__.load({
       /* --- composer seat：宿主默认用 bg-base 渐隐盖住卡片下方，改为半透明白纱 --- */
       out.push(
         '[data-composer-seat]{background-image:linear-gradient(180deg,' +
-          'rgba(255,255,255,0) 0px,rgba(255,255,255,0.16) 40px)!important}',
+          'rgba(255,255,255,0) 0px,rgba(255,255,255,0.10) 40px)!important}',
       )
 
       /* --- composer card shape ------------------------------------------------- */
