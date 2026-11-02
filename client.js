@@ -159,23 +159,50 @@ window.__ModuleLoader__.load({
       const portraitFocusY = num(theme && theme.geometry && theme.geometry.portraitFocusY, 34)
       const profilePortraitHeight = num(theme && theme.geometry && theme.geometry.profilePortraitHeight, 84)
 
-      if (sidebarRect && (copy.statusLabel || copy.brandMicroline)) {
+      if (sidebarRect) {
+        const brandTop = brandRect ? brandRect.top + 5 : sidebarRect.top + 10
+        const brandLeft = sidebarRect.left + RAIL_W + 10
+        const label = copy.statusLabel || 'LINK ACTIVE'
+        const sub = copy.brandMicroline || 'DEEP · SMART · HUMAN'
         children.push(h('div', {
-          key: 'brand-micro',
+          key: 'brand-block',
           style: {
-            position: 'absolute',
-            left: 'calc(' + (sidebarRect.right - 12) + 'px)',
-            top: ((brandRect ? brandRect.top + 6 : sidebarRect.top + 14)) + 'px',
-            transform: 'translateX(-100%)', textAlign: 'right',
+            position: 'absolute', left: brandLeft + 'px', top: brandTop + 'px',
+            width: Math.max(150, sidebarRect.width - RAIL_W - 22) + 'px',
             pointerEvents: 'none', userSelect: 'none',
+            display: 'flex', alignItems: 'flex-end', gap: '10px',
           },
         },
-          copy.statusLabel ? h('div', {
-            style: { fontFamily: 'var(--ds-font-family-code)', fontSize: '10px', letterSpacing: '0.22em', color: 'var(--dsw-alias-label-primary)', opacity: 0.8, fontWeight: 600 },
-          }, copy.statusLabel) : null,
-          copy.brandMicroline ? h('div', {
-            style: { marginTop: '4px', fontFamily: 'var(--ds-font-family-code)', fontSize: '7.5px', letterSpacing: '0.14em', color: 'var(--dsw-alias-label-tertiary)', opacity: 0.7 },
-          }, copy.brandMicroline) : null,
+          h('div', {
+            style: {
+              fontFamily: 'var(--dsw-font-family-brand)', fontSize: '21px', fontWeight: 900,
+              fontStyle: 'italic', letterSpacing: '0.01em', lineHeight: 1, color: ink,
+            },
+          }, 'DSH'),
+          h('div', { style: { width: '1px', height: '22px', background: lineClr, opacity: 0.8 } }),
+          h('div', { style: { display: 'flex', flexDirection: 'column', gap: '3px', paddingBottom: '1px' } },
+            h('div', { style: { fontFamily: 'var(--ds-font-family-code)', fontSize: '8.5px', fontWeight: 600, letterSpacing: '0.22em', color: ink, opacity: 0.85 } }, label),
+            h('div', { style: { fontFamily: 'var(--ds-font-family-code)', fontSize: '6.5px', letterSpacing: '0.16em', color: inkSoft } }, sub),
+          ),
+          h('div', {
+            style: {
+              marginLeft: 'auto', marginRight: '2px', width: '15px', height: '15px',
+              border: '1px solid ' + lineClr, position: 'relative', flex: 'none',
+            },
+          },
+            h('div', {
+              style: {
+                position: 'absolute', left: '3px', right: '3px', bottom: '3px', height: '1px',
+                background: inkSoft,
+              },
+            }),
+            h('div', {
+              style: {
+                position: 'absolute', right: '3px', top: '3px', width: '7px', height: '7px',
+                borderRight: '1px solid ' + inkSoft, borderBottom: '1px solid ' + inkSoft,
+              },
+            }),
+          ),
         ))
       }
 
@@ -630,6 +657,8 @@ window.__ModuleLoader__.load({
         'div:has(> [data-slot="sidebar"]){background:' +
           tint('--dsw-specific-sidebar-fill', sidebarAlpha) + '!important}',
         '[data-slot="sidebar"] > div > *{margin-left:34px!important}',
+        '[data-slot="sidebar.brand.mark"], [data-slot="sidebar.brand.name"]{opacity:0!important}',
+        '[data-slot="sidebar"] [class*="_logoRow"] > *{opacity:0!important}',
         '[data-slot="sidebar"] > div{padding-bottom:44px!important}',
         '[data-slot="sidebar"] > div > *:nth-child(3){margin-top:var(--cf-card-gap,236px)!important}',
         '[data-slot="sidebar"] > div{overflow-y:auto;scrollbar-width:none}',
