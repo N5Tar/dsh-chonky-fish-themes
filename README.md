@@ -1,0 +1,54 @@
+# dsh-chonky-fish-themes
+
+DeepSeek Harness（DSH）皮肤引擎 + `white-shark` 主题包。
+
+**设计目标**：把视觉层做成「主题包 = 素材 + theme.json」，换主题只换 `packs/<id>/`，不改引擎代码。
+
+## 结构
+
+```
+index.js                 Host 半：/skin 静态路由 + theme.json 注入 _available（文件是否就绪）
+client.js                Client 半：读 theme.json → 覆盖 token + 注入样式 + 装饰层（overlay）
+packs/<id>/theme.json    主题契约：tokens / geometry / copy / decor / capabilities
+packs/<id>/*.webp,png    素材（底图、头像、外框、噪点、装甲导轨…）
+tools/validate-pack.mjs  零依赖校验器：字段、枚举、范围、文件存在性
+```
+
+## 安装（当前 profile）
+
+```bash
+# 在 DSH 会话里用插件管理器安装（absolute path）
+plugin_manager install_bundle /path/to/dsh-chonky-fish-themes
+```
+
+安装后 `cordis.patch.yml` 会插入 `@local/dsh-chonky-fish-themes`，Host 起 `/skin` 路由，Client 注册 `shell.overlay` 装饰层。
+
+## 开发
+
+```bash
+node tools/validate-pack.mjs packs/white-shark --allow-missing-files   # 0 error / 素材缺失仅 warning
+node --check client.js && node --check index.js
+```
+
+- 改 `client.js` 会触发客户端 HMR（重建 + 重载）；
+- 只改 `theme.json` 不会自动重载，需要触碰 `client.js` 或重启应用；
+- 诊断日志默认关闭，排障时以 `DSH_SKIN_DIAG=1` 启动宿主，客户端重量级采集用 `localStorage.setItem('cf-diag','1')`。
+
+## 透明玻璃
+
+输入卡与消息列共用一套「透明度」：`theme.geometry.composerGlassAlpha` 是默认值，用户在上缘拉手（⌃）里调过之后以 `localStorage['cf-glass-transparency']` 为准，`blur = round(12 × alpha)` 联动。
+
+## 主题包契约
+
+`theme.json` 的完整字段、取值范围与验收口径见文档仓库 `docs/skin/theme-pack-spec.md`（v0.7）。本仓库只放代码与素材。
+
+## 素材状态
+
+| 素材 | 状态 |
+| --- | --- |
+| `bg.webp` 底图 | ✅ 已接入 |
+| `portrait.webp` 资料卡头像 | ✅ 已接入 |
+| `decor/composer-frame*.png` 输入卡外框 | ✅ 已接入（暗色版待补） |
+| `decor/sidebar-edge.png` 侧栏装甲导轨 | ⬜ 槽位已接，缺素材时用内置 SVG |
+| `wordmark.svg` / `signature.svg` / `decor/hud.svg` | ⬜ 未实现（引擎当前用代码绘制） |
+| `fonts/*.woff2` | ⬜ 未生成（当前用系统字体） |
