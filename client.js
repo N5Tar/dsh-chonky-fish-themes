@@ -180,15 +180,17 @@ window.__ModuleLoader__.load({
           '[data-composer-card]{' +
             'position:relative;isolation:isolate;' +
             'border:0!important;border-radius:0!important;box-sizing:border-box;' +
-            'background:rgba(255,255,255,0.97)!important;' +
+            'background-image:url("' + frameBg + '"),linear-gradient(180deg,#ffffff,#f3f5f7)!important;' +
+            'background-size:100% 100%,auto!important;background-position:center,0 0!important;' +
+            'background-repeat:no-repeat!important;background-origin:border-box!important;' +
+            'background-clip:border-box!important;' +
             'box-shadow:none!important;clip-path:none!important;filter:none!important;' +
-            'max-width:620px!important;' +
-            'padding:20px 24px!important;' +
-            'min-height:160px!important;' +
+            'max-width:720px!important;' +
+            'padding:24px 28px!important;' +
+            'min-height:178px!important;' +
             'justify-content:space-between' +
             '}',
-          '[data-composer-card]::before{content:"";position:absolute;inset:0;z-index:-1;' +
-            'background:url("' + frameBg + '") center/100% 100% no-repeat;pointer-events:none}',
+
           '[data-composer-card] [class*="_add"]{width:32px;height:32px;border:1px solid rgba(28,28,31,0.25)!important;' +
             'border-radius:2px!important;background:transparent!important;color:#1c1c1f!important}',
           '[data-composer-card] [class*="_primary"]{border-radius:2px!important;' +
