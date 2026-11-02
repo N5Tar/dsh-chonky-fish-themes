@@ -15,6 +15,7 @@ window.__ModuleLoader__.load({
   factory() {
     const PACK_ID = 'white-shark'
     const ROUTE = '/skin/' + PACK_ID + '/'
+    const DIAG_ROUTE = '/skin/__diag'
     const LOG = '[chonky-fish-themes]'
 
     function num(value, fallback) {
@@ -28,6 +29,48 @@ window.__ModuleLoader__.load({
     function tint(varName, alpha) {
       if (!(alpha < 1)) return 'var(' + varName + ')'
       return 'color-mix(in srgb, var(' + varName + ') ' + Math.round(alpha * 100) + '%, transparent)'
+    }
+
+    function collectCardInfo() {
+      try {
+        const el = document.querySelector('[data-composer-card]')
+        if (!el) return { card: 'absent' }
+        const cs = getComputedStyle(el)
+        const rect = el.getBoundingClientRect()
+        return {
+          card: 'present',
+          size: Math.round(rect.width) + 'x' + Math.round(rect.height),
+          borderTopWidth: cs.borderTopWidth,
+          borderImageSource: String(cs.borderImageSource).slice(0, 120),
+          borderImageSlice: String(cs.borderImageSlice),
+          borderRadius: cs.borderRadius,
+          backgroundColor: cs.backgroundColor,
+          backgroundImage: String(cs.backgroundImage).slice(0, 120),
+          paddingTop: cs.paddingTop,
+        }
+      } catch (err) {
+        return { card: 'error', message: String((err && err.message) || err) }
+      }
+    }
+
+    /** 临时诊断上报：Client → 宿主日志（无浏览器控制时定位渲染问题）。 */
+    function diag(payload) {
+      try {
+        fetch(DIAG_ROUTE, {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({
+            themeId: PACK_ID,
+            href: location.href,
+            origin: location.origin,
+            ua: navigator.userAgent,
+            ...payload,
+          }),
+          keepalive: true,
+        }).catch(() => {})
+      } catch {
+        /* diagnostics never throw */
+      }
     }
 
     function fontFaces(theme) {
@@ -48,7 +91,7 @@ window.__ModuleLoader__.load({
         .join('\n')
     }
 
-    function buildCss(theme) {
+    function buildCss(theme, frameReady) {
       const geometry = theme.geometry || {}
       const available = theme._available || {}
       const assetAvailable = available.assets || {}
@@ -127,16 +170,16 @@ window.__ModuleLoader__.load({
       )
 
       /* --- composer card shape ------------------------------------------------- */
-      if (frame) {
+      if (frame && frameReady) {
         // 素材外框：9-slice，内容叠在内部；垫板/切角由素材自身表达
         out.push(
           '[data-composer-card]{' +
             'position:relative;isolation:isolate;' +
             'border:' + frameWidth + 'px solid transparent!important;box-sizing:border-box;border-radius:0!important;' +
-            'border-image-source:url("' + frame + '");' +
-            'border-image-slice:' + frameSlice + ';' +
-            'border-image-width:' + frameWidth + 'px;' +
-            'border-image-repeat:stretch;border-image-outset:0;' +
+            'border-image-source:url("' + frame + '")!important;' +
+            'border-image-slice:' + frameSlice + '!important;' +
+            'border-image-width:' + frameWidth + 'px!important;' +
+            'border-image-repeat:stretch!important;border-image-outset:0!important;' +
             'background-color:var(--dsw-specific-input-major);' +
             'box-shadow:none!important;clip-path:none!important;filter:none!important' +
             '}',
@@ -189,16 +232,33 @@ window.__ModuleLoader__.load({
       return out.join('\n')
     }
 
-    function applyPack(ctx, theme, disposers) {
+    function applyPack(ctx, theme, disposers, frameReady) {
+      const css = buildCss(theme, frameReady)
       const style = document.createElement('style')
       style.setAttribute('data-plugin-css', 'chonky-fish-themes')
-      style.textContent = buildCss(theme)
+      style.textContent = css
       document.head.appendChild(style)
       disposers.push(() => style.remove())
 
       if (theme && theme.tokens && ctx.theme) {
         disposers.push(ctx.theme.overrideTokens(PACK_ID, theme.tokens))
       }
+
+      diag({
+        stage: 'applied',
+        frameReady: Boolean(frameReady),
+        cssLen: css.length,
+        styleApplied: true,
+        tokens: theme && theme.tokens ? Object.keys(theme.tokens).length : 0,
+        available: theme && theme._available
+          ? {
+              assets: Object.keys(theme._available.assets || {}).filter((k) => theme._available.assets[k]),
+              fonts: Object.keys(theme._available.fonts || {}).filter((k) => theme._available.fonts[k]),
+              customCss: theme._available.customCss,
+            }
+          : null,
+        computed: collectCardInfo(),
+      })
     }
 
     return {
@@ -208,6 +268,8 @@ window.__ModuleLoader__.load({
           let disposed = false
           const disposers = []
 
+          diag({ stage: 'boot' })
+
           fetch(ROUTE + 'theme.json', { cache: 'no-store' })
             .then((res) => {
               if (!res.ok) throw new Error('theme.json HTTP ' + res.status)
@@ -215,10 +277,35 @@ window.__ModuleLoader__.load({
             })
             .then((theme) => {
               if (disposed) return
-              applyPack(ctx, theme, disposers)
+              const frameRel = theme.assets && theme.assets['composer.frame']
+              const frameAvailable = Boolean(theme._available && theme._available.assets && theme._available.assets['composer.frame'])
+              const frameUrl = frameAvailable && frameRel ? assetUrl(frameRel) : null
+              if (!frameUrl) {
+                applyPack(ctx, theme, disposers, false)
+                return
+              }
+              // 图片探测：加载成功才启用 9-slice，失败则回退纯 CSS 造型
+              try {
+                const probe = new Image()
+                probe.onload = () => {
+                  if (disposed) return
+                  diag({ stage: 'frame-loaded', w: probe.naturalWidth, h: probe.naturalHeight })
+                  applyPack(ctx, theme, disposers, true)
+                }
+                probe.onerror = () => {
+                  if (disposed) return
+                  diag({ stage: 'frame-error' })
+                  applyPack(ctx, theme, disposers, false)
+                }
+                probe.src = frameUrl
+              } catch (err) {
+                diag({ stage: 'probe-throw', message: String((err && err.message) || err) })
+                applyPack(ctx, theme, disposers, false)
+              }
             })
             .catch((err) => {
               console.error(LOG, 'theme load failed:', err)
+              diag({ stage: 'theme-fetch-error', message: String((err && err.message) || err) })
             })
 
           return () => {

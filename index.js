@@ -8,12 +8,14 @@
  *
  * Not in scope here: image processing, pack installation, config UI.
  */
-import { createReadStream, existsSync, readFileSync, statSync } from 'node:fs'
+import { appendFileSync, createReadStream, existsSync, readFileSync, statSync } from 'node:fs'
+import { tmpdir } from 'node:os'
 import { dirname, extname, join, resolve, sep } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const PKG_DIR = dirname(fileURLToPath(import.meta.url))
 const PACKS_DIR = join(PKG_DIR, 'packs')
+const DIAG_LOG = join(tmpdir(), 'dsh-skin-diag.log')
 const ROUTE = '/skin'
 
 const MIME = {
@@ -51,6 +53,28 @@ function isFile(abs) {
   } catch {
     return false
   }
+}
+
+/** 临时诊断：把 Client 上报与素材请求写入临时日志，便于无浏览器控制时定位问题。 */
+function logDiag(entry) {
+  try {
+    appendFileSync(DIAG_LOG, JSON.stringify({ t: new Date().toISOString(), ...entry }) + '\n')
+  } catch {
+    /* diagnostics must never break serving */
+  }
+}
+
+function readBody(req, limit = 64 * 1024) {
+  return new Promise((resolve) => {
+    let size = 0
+    const chunks = []
+    req.on('data', (chunk) => {
+      size += chunk.length
+      if (size <= limit) chunks.push(chunk)
+    })
+    req.on('end', () => resolve(Buffer.concat(chunks).toString('utf8')))
+    req.on('error', () => resolve(''))
+  })
 }
 
 function sendJson(res, status, value) {
@@ -105,12 +129,8 @@ function handleManifest(res, packId) {
   sendJson(res, 200, { ...manifest, _available: availability(packDir, manifest) })
 }
 
-function handle(req, res) {
+async function handle(req, res) {
   try {
-    if (req.method !== 'GET' && req.method !== 'HEAD') {
-      sendText(res, 405, 'method not allowed')
-      return
-    }
     const url = new URL(req.url ?? '/', 'http://localhost')
     let pathname
     try {
@@ -119,6 +139,21 @@ function handle(req, res) {
       sendText(res, 400, 'bad path')
       return
     }
+
+    if (pathname === ROUTE + '/__diag') {
+      const body = req.method === 'POST' ? await readBody(req) : ''
+      logDiag({ kind: 'client', body })
+      res.writeHead(204, { 'cache-control': 'no-store' })
+      res.end()
+      return
+    }
+
+    if (req.method !== 'GET' && req.method !== 'HEAD') {
+      sendText(res, 405, 'method not allowed')
+      return
+    }
+
+    logDiag({ kind: 'get', path: pathname, ua: req.headers['user-agent'] })
     if (pathname !== ROUTE && !pathname.startsWith(ROUTE + '/')) {
       sendText(res, 404, 'not found')
       return
