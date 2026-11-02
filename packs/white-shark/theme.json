@@ -250,7 +250,14 @@
     "darkScrim": 0.72,
     "composerFrameSlice": 96,
     "composerFrameWidth": 26,
-    "composerChrome": "frame"
+    "composerChrome": "frame",
+    "portraitZoom": 170,
+    "portraitFocusY": 34,
+    "profilePortraitHeight": 84,
+    "composerMaxWidth": 720,
+    "composerMinHeight": 178,
+    "composerPaddingY": 24,
+    "composerPaddingX": 28
   },
   "copy": {
     "mode": "official",

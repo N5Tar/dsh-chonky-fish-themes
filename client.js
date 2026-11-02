@@ -140,6 +140,13 @@ window.__ModuleLoader__.load({
       const anchors = computeAnchors()
       const inHero = Boolean(document.querySelector('[data-content-phase="hero"]'))
       const children = []
+      const isDark = document.body.hasAttribute('data-ds-dark-theme')
+      const ink = isDark ? 'rgba(240,242,245,0.92)' : 'rgba(28,28,31,0.92)'
+      const inkSoft = isDark ? 'rgba(240,242,245,0.55)' : 'rgba(28,28,31,0.55)'
+      const inkFaint = isDark ? 'rgba(240,242,245,0.35)' : 'rgba(28,28,31,0.35)'
+      const lineClr = isDark ? 'rgba(255,255,255,0.30)' : 'rgba(28,28,31,0.45)'
+      const lineSoft = isDark ? 'rgba(255,255,255,0.16)' : 'rgba(28,28,31,0.18)'
+      const cardFill = isDark ? 'rgba(14,16,20,0.82)' : 'rgba(247,248,247,0.92)'
       const copy = (theme && theme.copy) || {}
       const sidebarRect = rectOf('div:has(> [data-slot="sidebar"])')
       const brandRect = rectOf('[class*="_logoRow"]')
@@ -147,6 +154,9 @@ window.__ModuleLoader__.load({
       const portraitUrl = (theme && theme._available && theme._available.assets && theme._available.assets.portrait && theme.assets && theme.assets.portrait)
         ? ROUTE + theme.assets.portrait
         : null
+      const portraitZoom = num(theme && theme.geometry && theme.geometry.portraitZoom, 170)
+      const portraitFocusY = num(theme && theme.geometry && theme.geometry.portraitFocusY, 34)
+      const profilePortraitHeight = num(theme && theme.geometry && theme.geometry.profilePortraitHeight, 84)
 
       if (sidebarRect && (copy.statusLabel || copy.brandMicroline)) {
         children.push(h('div', {
@@ -176,7 +186,7 @@ window.__ModuleLoader__.load({
           style: {
             position: 'absolute', left: (sidebarRect.left + 16) + 'px', top: ((brandRect ? brandRect.bottom + 8 : sidebarRect.top + 64)) + 'px', width: cardW + 'px',
             boxSizing: 'border-box', padding: '10px 12px 12px',
-            background: 'rgba(247,248,247,0.92)', border: '1px solid rgba(28,28,31,0.45)',
+            background: cardFill, border: '1px solid ' + lineClr,
             clipPath: 'polygon(12px 0,100% 0,100% calc(100% - 12px),calc(100% - 12px) 100%,0 100%,0 12px)',
             pointerEvents: 'none', userSelect: 'none',
             display: 'flex', flexDirection: 'column', gap: '8px',
@@ -184,21 +194,21 @@ window.__ModuleLoader__.load({
         },
           h('div', {
             style: {
-              height: '84px', border: portraitUrl ? '0' : '1px solid rgba(28,28,31,0.18)',
+              height: profilePortraitHeight + 'px', border: portraitUrl ? '0' : ('1px solid ' + lineSoft),
               backgroundImage: portraitUrl
                 ? 'url("' + portraitUrl + '")'
                 : 'repeating-linear-gradient(45deg,rgba(28,28,31,0.05) 0 5px,transparent 5px 11px)',
-              backgroundSize: portraitUrl ? '170% auto' : 'cover',
-              backgroundPosition: portraitUrl ? 'center 34%' : 'center',
+              backgroundSize: portraitUrl ? (portraitZoom + '% auto') : 'cover',
+              backgroundPosition: portraitUrl ? ('center ' + portraitFocusY + '%') : 'center',
               display: 'grid', placeItems: 'center',
             },
-          }, portraitUrl ? null : h('div', { style: { fontFamily: 'var(--ds-font-family-code)', fontSize: '9px', letterSpacing: '0.24em', color: 'var(--dsw-alias-label-tertiary)' } }, 'PORTRAIT')),
-          h('div', { style: { fontFamily: 'var(--dsw-font-family-brand)', fontSize: '24px', fontWeight: 700, lineHeight: 1.1, color: 'var(--dsw-alias-label-primary)', letterSpacing: '0.02em' } }, copy.profile.name),
-          copy.profile.subtitle ? h('div', { style: { fontSize: '11px', color: 'var(--dsw-alias-label-secondary)', lineHeight: 1.5 } }, copy.profile.subtitle) : null,
-          copy.profile.signature ? h('div', { style: { fontFamily: 'var(--ds-font-family-code)', fontSize: '16px', fontStyle: 'italic', color: 'var(--dsw-alias-label-tertiary)', opacity: 0.85 } }, copy.profile.signature) : null,
-          h('div', { style: { paddingTop: '6px', borderTop: '1px solid rgba(28,28,31,0.12)', display: 'flex', justifyContent: 'space-between' } },
-            h('span', { style: { fontFamily: 'var(--ds-font-family-code)', fontSize: '9px', letterSpacing: '0.2em', color: 'var(--dsw-alias-label-secondary)' } }, copy.profile.label || ''),
-            h('span', { style: { fontFamily: 'var(--ds-font-family-code)', fontSize: '9px', letterSpacing: '0.2em', color: 'var(--dsw-alias-label-tertiary)' } }, '/////'),
+          }, portraitUrl ? null : h('div', { style: { fontFamily: 'var(--ds-font-family-code)', fontSize: '9px', letterSpacing: '0.24em', color: inkFaint } }, 'PORTRAIT')),
+          h('div', { style: { fontFamily: 'var(--dsw-font-family-brand)', fontSize: '24px', fontWeight: 700, lineHeight: 1.1, color: ink, letterSpacing: '0.02em' } }, copy.profile.name),
+          copy.profile.subtitle ? h('div', { style: { fontSize: '11px', color: inkSoft, lineHeight: 1.5 } }, copy.profile.subtitle) : null,
+          copy.profile.signature ? h('div', { style: { fontFamily: 'var(--ds-font-family-code)', fontSize: '16px', fontStyle: 'italic', color: inkFaint, opacity: 0.85 } }, copy.profile.signature) : null,
+          h('div', { style: { paddingTop: '6px', borderTop: '1px solid ' + (isDark ? 'rgba(255,255,255,0.14)' : 'rgba(28,28,31,0.12)'), display: 'flex', justifyContent: 'space-between' } },
+            h('span', { style: { fontFamily: 'var(--ds-font-family-code)', fontSize: '9px', letterSpacing: '0.2em', color: inkSoft } }, copy.profile.label || ''),
+            h('span', { style: { fontFamily: 'var(--ds-font-family-code)', fontSize: '9px', letterSpacing: '0.2em', color: inkFaint } }, '/////'),
           ),
         ))
       }
@@ -220,7 +230,12 @@ window.__ModuleLoader__.load({
         } else if (d.kind === 'rail') {
           children.push(h('div', {
             key: 'decor-' + i,
-            style: { ...decorTextStyle(d), left: anchor.x + 'px', top: anchor.y + 'px', display: 'flex', flexDirection: 'column' },
+            'data-skin-decor': String(i),
+            style: {
+              ...decorTextStyle(d),
+              right: '14px', top: anchor.y + 'px', textAlign: 'right',
+              display: 'flex', flexDirection: 'column', whiteSpace: 'nowrap',
+            },
           }, (d.items || []).map((item, j) => h('div', { key: 'rail-' + j }, item))))
         } else if (d.kind === 'watermark') {
           children.push(h('div', {
@@ -347,6 +362,12 @@ window.__ModuleLoader__.load({
         return { name, cls: String(el.className || '').slice(0, 40), h: el.clientHeight, sh: el.scrollHeight,
           overflowY: cs.overflowY, display: cs.display, flex: cs.flex, minH: cs.minHeight, maxH: cs.maxHeight }
       }
+      const chatP = document.querySelector('[data-conversation-content] p, [data-conversation-region="chat"] p')
+      const bodyCs = getComputedStyle(document.body)
+      out.push({ label: 'darkCheck', bodyDark: document.body.hasAttribute('data-ds-dark-theme'),
+        labelPrimary: bodyCs.getPropertyValue('--dsw-alias-label-primary').trim(),
+        bgBase: bodyCs.getPropertyValue('--dsw-alias-bg-base').trim(),
+        chatColor: chatP ? getComputedStyle(chatP).color : null })
       out.push({ label: 'sidebarScroll', col: sbInfo(sbCol, 'col'), root: sbInfo(sbRoot, 'root'), region: sbInfo(document.querySelector('[data-slot="sidebar.workspaces"]'), 'region') })
       out.push({ label: 'phase', hero: Boolean(document.querySelector('[data-content-phase="hero"]')), phaseEl: (document.querySelector('[data-content-phase]') || {}).getAttribute ? document.querySelector('[data-content-phase]').getAttribute('data-content-phase') : null })
       return out
@@ -414,6 +435,10 @@ window.__ModuleLoader__.load({
       const frameSlice = num(geometry.composerFrameSlice, 96)
       const frameWidth = num(geometry.composerFrameWidth, 26)
       const composerChrome = typeof geometry.composerChrome === 'string' ? geometry.composerChrome : 'css'
+      const composerMaxWidth = num(geometry.composerMaxWidth, 720)
+      const composerMinHeight = num(geometry.composerMinHeight, 178)
+      const composerPaddingY = num(geometry.composerPaddingY, 24)
+      const composerPaddingX = num(geometry.composerPaddingX, 28)
       const frameBg = assetAvailable['composer.frameBg']
         ? assetUrl(theme.assets && theme.assets['composer.frameBg'])
         : null
@@ -448,6 +473,17 @@ window.__ModuleLoader__.load({
           'html{background-color:transparent!important}',
           'body::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;' +
             'background:url("' + bg + '") center/cover no-repeat!important}',
+          darkScrim > 0
+            ? 'body[data-ds-dark-theme]::before{background-image:linear-gradient(rgba(8,10,12,' + darkScrim + '),' +
+              'rgba(8,10,12,' + darkScrim + ')),url("' + bg + '")!important}'
+            : '',
+          'body[data-ds-dark-theme] [data-composer-card]{color-scheme:dark}',
+          'body[data-ds-dark-theme] div:has(> [data-slot="main"]){background:linear-gradient(90deg,' +
+            'rgba(8,10,12,' + Math.min(0.85, centerAlpha + 0.2).toFixed(2) + ') 0%,' +
+            'rgba(8,10,12,' + Math.min(0.6, centerAlpha * 0.8).toFixed(2) + ') 46%,' +
+            'rgba(8,10,12,0) 80%)!important}',
+          'body[data-ds-dark-theme] [data-composer-card]{background-image:url("' + (frameBg || '') + '"),' +
+            'linear-gradient(180deg,rgba(12,14,18,0.62),rgba(8,10,12,0.5))!important}',
           'html[data-platform="darwin"],html[data-platform="darwin"] body{background-color:transparent!important}',
           'html body,#root{background-color:transparent!important}',
           // 会话根容器（宿主默认 bg-base 不透明）→ 透明，让底图透出
@@ -482,6 +518,8 @@ window.__ModuleLoader__.load({
         'div:has(> [data-slot="main"]):has([data-content-phase="hero"]){background:' +
           tint('--dsw-alias-bg-base', heroCenterAlpha) + '!important;backdrop-filter:none!important}',
         'div:has(> [data-slot="rightbar"]){background:transparent!important}',
+        '@media (max-width: 1180px){div:has(> [data-slot="main"]){background:linear-gradient(90deg,' +
+          'rgba(255,255,255,0.72) 0%,rgba(255,255,255,0.45) 55%,rgba(255,255,255,0.12) 100%)!important}}',
       )
 
       /* --- composer card shape ------------------------------------------------- */
@@ -498,9 +536,9 @@ window.__ModuleLoader__.load({
             'background-repeat:no-repeat!important;background-origin:border-box!important;' +
             'background-clip:border-box!important;' +
             'box-shadow:none!important;clip-path:none!important;filter:none!important;' +
-            'max-width:720px!important;' +
-            'padding:24px 28px!important;' +
-            'min-height:178px!important;' +
+            'max-width:' + composerMaxWidth + 'px!important;' +
+            'padding:' + composerPaddingY + 'px ' + composerPaddingX + 'px!important;' +
+            'min-height:' + composerMinHeight + 'px!important;' +
             'justify-content:space-between' +
             '}',
 
