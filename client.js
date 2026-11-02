@@ -198,8 +198,9 @@ window.__ModuleLoader__.load({
               backgroundImage: portraitUrl
                 ? 'url("' + portraitUrl + '")'
                 : 'repeating-linear-gradient(45deg,rgba(28,28,31,0.05) 0 5px,transparent 5px 11px)',
-              backgroundSize: portraitUrl ? (portraitZoom + '% auto') : 'cover',
+              backgroundSize: !portraitUrl || portraitZoom <= 100 ? 'cover' : (portraitZoom + '% auto'),
               backgroundPosition: portraitUrl ? ('center ' + portraitFocusY + '%') : 'center',
+              backgroundRepeat: 'no-repeat',
               display: 'grid', placeItems: 'center',
             },
           }, portraitUrl ? null : h('div', { style: { fontFamily: 'var(--ds-font-family-code)', fontSize: '9px', letterSpacing: '0.24em', color: inkFaint } }, 'PORTRAIT')),
@@ -563,6 +564,25 @@ window.__ModuleLoader__.load({
         'div:has(> [data-slot="rightbar"]){background:transparent!important}',
         '@media (max-width: 1180px){div:has(> [data-slot="main"]){background:linear-gradient(90deg,' +
           'rgba(255,255,255,0.72) 0%,rgba(255,255,255,0.45) 55%,rgba(255,255,255,0.12) 100%)!important}}',
+      )
+
+      /* --- 侧栏左缘机械缺口装饰（SVG data URI，无需素材） --- */
+      const edgeAsset = (theme._available && theme._available.assets && theme._available.assets['decor.sidebarEdge'] && theme.assets && theme.assets['decor.sidebarEdge'])
+        ? 'url("' + ROUTE + theme.assets['decor.sidebarEdge'] + '")'
+        : null
+      const edgeSvgRaw = '<svg xmlns="http://www.w3.org/2000/svg" width="12" height="900" viewBox="0 0 12 900" preserveAspectRatio="none">' +
+        '<g fill="#202023">' +
+        '<path d="M0 0h12v48L0 96z"/>' +
+        '<path d="M0 246h7l5 14v34l-5 14H0z"/>' +
+        '<path d="M0 612h6l6 18v30l-6 18H0z"/>' +
+        '<path d="M0 806l12-34v128H0z"/>' +
+        '</g></svg>'
+      const edgeSvg = encodeURIComponent(edgeSvgRaw)
+      out.push(
+        'div:has(> [data-slot="sidebar"]){position:relative!important}',
+        'div:has(> [data-slot="sidebar"])::before{content:"";position:absolute;left:0;top:0;bottom:0;width:12px;' +
+          'z-index:3;pointer-events:none;' +
+          'background:' + (edgeAsset || ('url("data:image/svg+xml;charset=utf-8,' + edgeSvg + '")')) + ' left top/12px 100% no-repeat}',
       )
 
       /* --- composer seat：宿主默认用 bg-base 渐隐盖住卡片下方，改为半透明白纱 --- */

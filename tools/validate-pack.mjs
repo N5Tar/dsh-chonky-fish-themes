@@ -39,6 +39,7 @@ const SLOT_RULES = {
   'composer.frame': { required: false, ext: ['.png'], maxBytes: 300 * 1024 },
   'composer.grain': { required: false, ext: ['.png'], maxBytes: 24 * 1024 },
   'composer.frameBg': { required: false, ext: ['.png'], maxBytes: 300 * 1024 },
+  'decor.sidebarEdge': { required: false, ext: ['.png', '.svg', '.webp'], maxBytes: 80 * 1024 },
   icon: { required: true, ext: ['.svg', '.png', '.webp'], maxBytes: 256 * 1024 },
 }
 
