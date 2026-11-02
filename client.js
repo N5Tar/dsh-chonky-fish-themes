@@ -110,88 +110,146 @@ window.__ModuleLoader__.load({
       }
     }
 
-    /* ---- 玻璃透明度调节（demo 里 composer 上方的小方块） ---- */
-    function readGlassPct() {
+    /* ---- 透明度联动控件（完全对齐 demo .composer-tune / .tune-tab / .tune-panel） ---- */
+    function readTunePct() {
       try {
-        const saved = JSON.parse(localStorage.getItem('cf-glass-v2') || 'null')
-        if (saved && typeof saved.alpha === 'number') {
-          return Math.max(0, Math.min(100, Math.round(saved.alpha * 100)))
+        const saved = JSON.parse(localStorage.getItem('cf-glass-v3') || 'null')
+        if (saved && typeof saved.transparency === 'number') {
+          return Math.max(0, Math.min(100, Math.round(saved.transparency)))
         }
       } catch (e) {}
-      return 78
+      return 22
     }
-    function applyGlassPct(pct) {
-      const alpha = pct / 100
+    function applyTunePct(pct) {
+      const alpha = 1 - pct / 100
       const blur = Math.round(12 * alpha)
       const root = document.documentElement.style
       root.setProperty('--cf-composer-alpha', String(alpha))
       root.setProperty('--cf-chat-alpha', String(alpha))
       root.setProperty('--cf-composer-blur', blur + 'px')
       root.setProperty('--cf-chat-blur', blur + 'px')
-      try { localStorage.setItem('cf-glass-v2', JSON.stringify({ alpha })) } catch (e) {}
+      try { localStorage.setItem('cf-glass-v3', JSON.stringify({ transparency: pct })) } catch (e) {}
     }
     function GlassControl(props) {
+      const [pct, setPct] = React.useState(readTunePct)
       const [open, setOpen] = React.useState(false)
-      const [pct, setPct] = React.useState(readGlassPct)
-      React.useEffect(() => { applyGlassPct(pct) }, [pct])
+      const wrapRef = React.useRef(null)
+      const closeTimer = React.useRef(null)
+      const cancelClose = () => { if (closeTimer.current) { clearTimeout(closeTimer.current); closeTimer.current = null } }
+      const scheduleClose = () => { cancelClose(); closeTimer.current = setTimeout(() => setOpen(false), 420) }
+      React.useEffect(() => { applyTunePct(pct) }, [pct])
+      React.useEffect(() => {
+        if (!open) return undefined
+        const onPointerDown = (e) => { if (wrapRef.current && !wrapRef.current.contains(e.target)) setOpen(false) }
+        const onKey = (e) => { if (e.key === 'Escape') setOpen(false) }
+        document.addEventListener('pointerdown', onPointerDown, true)
+        document.addEventListener('keydown', onKey)
+        return () => {
+          document.removeEventListener('pointerdown', onPointerDown, true)
+          document.removeEventListener('keydown', onKey)
+          cancelClose()
+        }
+      }, [open])
       const r = props.rect
       if (!r) return null
-      const ink = props.ink
-      const inkSoft = props.inkSoft
-      const lineClr = props.lineClr
+      const width = Math.min(342, Math.max(240, r.width - 118))
+      const left = r.left + r.width / 2 - width / 2
+      const top = r.top - 18
+      const ink = '#48515a'
+      const pctStyle = 'linear-gradient(90deg,#343b43 ' + pct + '%,#b9c0c5 ' + pct + '%)'
       return h('div', {
-        style: {
-          position: 'fixed', left: Math.round(r.right - 22) + 'px', top: Math.round(r.top - 30) + 'px',
-          width: '22px', display: 'flex', flexDirection: 'column', alignItems: 'flex-end',
-          pointerEvents: 'auto', zIndex: 30,
-        },
+        ref: wrapRef,
+        style: { position: 'fixed', left: Math.round(left) + 'px', top: Math.round(top) + 'px', width: Math.round(width) + 'px',
+          height: '53px', pointerEvents: 'none', zIndex: 30, isolation: 'isolate' },
+        onPointerEnter: cancelClose, onPointerLeave: scheduleClose,
       },
-        open ? h('div', {
+        h('button', {
+          type: 'button',
+          'aria-label': open ? '收起透明度滑块' : '展开透明度滑块',
+          'aria-expanded': open,
+          onClick: () => setOpen((v) => !v),
           style: {
-            width: '228px', marginBottom: '6px', padding: '9px 10px 8px',
-            border: '1px solid ' + lineClr, background: 'rgba(250,250,250,0.94)',
-            backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)',
-            fontFamily: 'var(--ds-font-family-code)', color: ink,
-            display: 'flex', flexDirection: 'column', gap: '7px',
-            boxShadow: '0 6px 18px rgba(20,22,26,0.10)',
+            position: 'absolute', left: '50%', transform: 'translateX(-50%)', top: '4px',
+            height: '32px', width: '90px', padding: 0, border: 0, background: 'transparent',
+            pointerEvents: open ? 'none' : 'auto', cursor: 'pointer', zIndex: 1,
           },
         },
-          h('div', { style: { display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', fontSize: '8.5px', letterSpacing: '0.18em' } },
-            h('span', null, 'GLASS · LINKED'),
-            h('span', { style: { color: inkSoft } }, String(pct).padStart(2, '0') + '%'),
-          ),
-          h('input', {
-            type: 'range', min: 0, max: 100, step: 1, value: pct,
-            onChange: (e) => setPct(Number(e.target.value)),
-            style: { width: '100%', accentColor: '#1c1c1f', height: '14px' },
-          }),
-          h('div', { style: { display: 'flex', justifyContent: 'space-between', fontSize: '7px', letterSpacing: '0.14em', color: inkSoft } },
-            h('span', null, 'CLEAR'),
-            h('span', null, 'SOLID'),
-          ),
-          h('button', {
-            type: 'button',
-            onClick: () => { try { localStorage.removeItem('cf-glass-v2') } catch (e) {} ; setPct(props.defaultPct) },
+          h('span', {
             style: {
-              alignSelf: 'flex-end', border: '1px solid ' + lineClr, background: 'transparent',
-              color: inkSoft, fontFamily: 'var(--ds-font-family-code)', fontSize: '7px',
-              letterSpacing: '0.16em', padding: '3px 6px', cursor: 'pointer',
+              position: 'absolute', top: '6px', left: '50%', transform: 'translateX(-50%)',
+              width: '68px', height: '14px', boxSizing: 'border-box', display: 'block',
+              background: 'linear-gradient(180deg,#383e43 0%,#1b2025 28%,#14191d 86%,#2a3035 100%)',
+              border: '1px solid #626b72',
+              boxShadow: 'inset 0 1px 0 rgba(179,189,195,0.31), 0 1px 2px rgba(23,27,32,0.2)',
+              clipPath: 'polygon(6px 0,calc(100% - 6px) 0,100% 5px,100% 100%,0 100%,0 5px)',
             },
-          }, 'RESET'),
-        ) : null,
-        h('button', {
-          type: 'button', onClick: () => setOpen((v) => !v), title: '玻璃透明度',
+          }),
+          h('span', {
+            style: {
+              position: 'absolute', left: '50%', top: '9px', width: '6px', height: '6px',
+              borderTop: '2px solid #f6f7f8', borderLeft: '2px solid #f6f7f8',
+              transform: 'translateX(-50%) rotate(45deg)', filter: 'drop-shadow(0 1px 0 rgba(0,0,0,0.45))',
+              display: 'block',
+            },
+          }),
+        ),
+        h('div', {
+          'aria-hidden': !open,
           style: {
-            width: '22px', height: '22px', padding: 0, cursor: 'pointer',
-            border: '1px solid ' + (open ? ink : lineClr),
-            background: open ? 'rgba(28,28,31,0.06)' : 'rgba(250,250,250,0.55)',
-            color: ink, display: 'grid', placeItems: 'center',
+            position: 'absolute', inset: '1px 0 auto', height: '40px',
+            opacity: open ? 1 : 0, visibility: open ? 'visible' : 'hidden',
+            transform: open ? 'translateY(0) scaleX(1)' : 'translateY(7px) scaleX(0.965)',
+            transition: 'opacity .15s ease,transform .2s cubic-bezier(.2,.75,.25,1),visibility 0s',
+            pointerEvents: open ? 'auto' : 'none',
+            filter: 'drop-shadow(0 3px 3px rgba(26,30,36,0.16))', zIndex: 3,
           },
-        }, h('svg', { width: 11, height: 11, viewBox: '0 0 11 11', fill: 'none' },
-          h('rect', { x: 1.5, y: 1.5, width: 8, height: 8, stroke: 'currentColor', strokeWidth: 0.8 }),
-          h('path', { d: 'M4 1.5V9.5', stroke: 'currentColor', strokeWidth: 0.8 }),
-          h('path', { d: 'M1.5 6H9.5', stroke: 'currentColor', strokeWidth: 0.8, opacity: 0.55 }),
-        )),
+        },
+          h('div', {
+            style: {
+              position: 'absolute', inset: 0,
+              clipPath: 'polygon(0 13px,12px 0,calc(100% - 12px) 0,100% 13px,100% 31px,calc(100% - 9px) 100%,9px 100%,0 31px)',
+              background: '#373d43',
+            },
+          }),
+          h('div', {
+            style: {
+              position: 'absolute', inset: '1px',
+              clipPath: 'polygon(0 12px,11px 0,calc(100% - 11px) 0,100% 12px,100% 29px,calc(100% - 8px) 100%,8px 100%,0 29px)',
+              background: 'linear-gradient(#fafafa,#e9ebed)',
+            },
+          }),
+          h('div', {
+            style: { position: 'absolute', left: '30%', right: '30%', bottom: 0, height: '3px',
+              background: '#23282d', clipPath: 'polygon(5px 0,calc(100% - 5px) 0,100% 100%,0 100%)' },
+          }),
+          h('div', {
+            style: { position: 'relative', display: 'flex', alignItems: 'center', gap: '9px', height: '100%',
+              padding: '0 19px', zIndex: 1 },
+          },
+            h('svg', { width: 14, height: 14, viewBox: '0 0 20 20', fill: 'none', stroke: ink, strokeWidth: 1.6, style: { flex: 'none', color: ink } },
+              h('circle', { cx: 10, cy: 10, r: 7.6 }),
+              h('path', { d: 'M10 2.4v15.2a7.6 7.6 0 0 0 0-15.2Z', fill: ink, fillOpacity: 0.25, stroke: 'none' }),
+            ),
+            h('label', { htmlFor: 'cf-tune-range', style: { fontSize: '11px', color: ink, whiteSpace: 'nowrap', letterSpacing: '0.08em', fontWeight: 650 } }, '透明度'),
+            h('input', {
+              id: 'cf-tune-range', type: 'range', min: 0, max: 100, step: 1, value: pct,
+              'aria-label': '会话和 Composer 联动透明度，数值越大越透明',
+              className: 'cf-tune-range',
+              onChange: (e) => setPct(Number(e.target.value)),
+              style: { flex: 1, minWidth: '32px', height: '3px', border: 0, appearance: 'none',
+                WebkitAppearance: 'none', outline: 'none', background: pctStyle, cursor: 'ew-resize' },
+            }),
+            h('output', { style: { minWidth: '35px', textAlign: 'right',
+              fontFamily: 'ui-monospace,SFMono-Regular,Consolas,monospace', fontSize: '11px', fontWeight: 650,
+              color: '#465159', fontVariantNumeric: 'tabular-nums' } }, pct + '%'),
+            h('button', {
+              type: 'button', 'aria-label': '收起透明度设置', title: '收起', onClick: () => setOpen(false),
+              style: { width: '21px', height: '21px', display: 'grid', placeItems: 'center', padding: 0,
+                border: 0, background: 'transparent', color: '#6d777e', fontSize: '15px', lineHeight: 1,
+                cursor: 'pointer', opacity: 0.76 },
+            }, '×'),
+          ),
+        ),
       )
     }
 
@@ -858,6 +916,15 @@ window.__ModuleLoader__.load({
       out.push(
         '[data-composer-seat]{background-image:linear-gradient(180deg,' +
           'rgba(255,255,255,0) 0px,rgba(255,255,255,0.10) 40px)!important}',
+      )
+
+      /* --- 透明度滑块拇指（demo .tune-range 同款） --- */
+      out.push(
+        '.cf-tune-range::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:12px;height:14px;' +
+          'border:2px solid #f4f5f6;border-radius:1px;background:#333b42;box-shadow:0 0 0 1px #626a71;cursor:ew-resize}',
+        '.cf-tune-range::-moz-range-thumb{width:10px;height:12px;border:2px solid #f4f5f6;border-radius:1px;' +
+          'background:#333b42;box-shadow:0 0 0 1px #626a71;cursor:ew-resize}',
+        '.cf-tune-range:focus-visible{outline:2px solid #4f7086;outline-offset:5px}',
       )
 
       /* --- composer 内层玻璃（demo：inset + 8 角切角 + blur） --- */
