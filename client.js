@@ -133,7 +133,9 @@ window.__ModuleLoader__.load({
     /** 用户覆盖（只在用户真的调过时存在）。 */
     function storedGlassPct() {
       try {
-        const v = Number(localStorage.getItem(GLASS_KEY))
+        const raw = localStorage.getItem(GLASS_KEY)
+        if (raw === null || raw === '') return null
+        const v = Number(raw)
         if (Number.isFinite(v)) return Math.max(0, Math.min(100, Math.round(v)))
       } catch (e) {}
       return null
