@@ -480,6 +480,17 @@ window.__ModuleLoader__.load({
       out.push({ label: 'seatBg', bg: seat ? getComputedStyle(seat).backgroundImage : null, bgColor: seat ? getComputedStyle(seat).backgroundColor : null })
       out.push({ label: 'pseudoAtBottom', items: pseudoAt(Math.round(innerWidth * 0.5), Math.round(innerHeight - 14)) })
       out.push({ label: 'bottomProbe', bottom: probe(Math.round(innerWidth * 0.5), Math.round(innerHeight - 24)), belowComposer: probe(Math.round(innerWidth * 0.5), Math.round(innerHeight - 110)) })
+      const rows = Array.from(document.querySelectorAll('[data-row-key]')).slice(0, 3).map((el) => {
+        const r = el.getBoundingClientRect()
+        return {
+          key: el.getAttribute('data-row-key'),
+          size: Math.round(r.width) + 'x' + Math.round(r.height),
+          html: String(el.outerHTML).replace(/\s+/g, ' ').slice(0, 900),
+        }
+      })
+      const sectionHdr = Array.from(document.querySelectorAll('div:has(> [data-slot="sidebar.workspaces"]) [class*="_section"]')).slice(0, 3).map((el) => String(el.outerHTML).replace(/\s+/g, ' ').slice(0, 220))
+      const settingsRow = Array.from(document.querySelectorAll('[data-slot="sidebar"] [class*="_foot"], [data-slot="sidebar"] [class*="_settings"]')).slice(0, 3).map((el) => String(el.outerHTML).replace(/\s+/g, ' ').slice(0, 200))
+      out.push({ label: 'sidebarDetail', rows, sectionHdr, settingsRow })
       out.push({ label: 'sidebarScroll', col: sbInfo(sbCol, 'col'), root: sbInfo(sbRoot, 'root'), region: sbInfo(document.querySelector('[data-slot="sidebar.workspaces"]'), 'region') })
       out.push({ label: 'phase', hero: Boolean(document.querySelector('[data-content-phase="hero"]')), phaseEl: (document.querySelector('[data-content-phase]') || {}).getAttribute ? document.querySelector('[data-content-phase]').getAttribute('data-content-phase') : null })
       return out
@@ -669,6 +680,40 @@ window.__ModuleLoader__.load({
       out.push(
         '[data-composer-seat]{background-image:linear-gradient(180deg,' +
           'rgba(255,255,255,0) 0px,rgba(255,255,255,0.10) 40px)!important}',
+      )
+
+      /* --- 侧栏列表细节：工作区/会话行、树线、时间、选中态 --- */
+      const SB = 'div:has(> [data-slot="sidebar"])'
+      out.push(
+        SB + ' [class*="_sectionHeader"]{padding:2px 8px!important}',
+        SB + ' [class*="_sectionLabel"]{font-size:14px!important;font-weight:700!important;letter-spacing:0.06em!important;color:var(--dsw-alias-label-primary)!important}',
+        SB + ' [class*="_sectionHeader"] [class*="_sectionLabel"]::before{content:"";display:inline-block;' +
+          'width:5px;height:11px;margin-right:7px;background:#2b2b2e;vertical-align:-1px;' +
+          'clip-path:polygon(0 0,100% 50%,0 100%)}',
+        SB + ' [class*="_searchButton"],' + SB + ' [class*="_sectionHeader"] button{color:var(--dsw-alias-label-secondary)!important}',
+        // 工作区行
+        SB + ' [class*="_projectRow"]{height:30px!important;padding:0 8px!important;border-radius:2px!important;' +
+          'font-size:12.5px!important;font-weight:600!important;letter-spacing:0.02em!important;color:var(--dsw-alias-label-primary)!important}',
+        SB + ' [class*="_projectRow"]:hover{background:rgba(28,28,31,0.05)!important}',
+        SB + ' [class*="_projectRow"] [class*="_folder"] svg{width:15px!important;height:15px!important;color:var(--dsw-alias-label-primary)!important}',
+        // 会话行：树线 + 菱形节点 + 时间
+        SB + ' [class*="_sessionRow"]{height:29px!important;padding:0 6px 0 20px!important;position:relative!important;' +
+          'border-radius:2px!important;font-size:12px!important}',
+        SB + ' [class*="_sessionRow"]::before{content:"";position:absolute;left:9px;top:0;bottom:0;width:1px;' +
+          'background:rgba(28,28,31,0.14)}',
+        SB + ' [class*="_sessionRow"]::after{content:"";position:absolute;left:6.5px;top:50%;width:4px;height:4px;' +
+          'border:1px solid rgba(28,28,31,0.38);background:#f7f8f7;transform:translateY(-50%) rotate(45deg)}',
+        SB + ' [class*="_sessionRow"] [class*="_title"]{font-size:12px!important;letter-spacing:0.01em!important;color:var(--dsw-alias-label-primary)!important}',
+        SB + ' [class*="_sessionRow"] [class*="_time"]{font-size:9px!important;letter-spacing:0.06em!important;' +
+          'color:var(--dsw-alias-label-tertiary)!important;font-variant-numeric:tabular-nums}',
+        SB + ' [class*="_sessionRow"] [class*="_rowActions"]{opacity:0;transition:opacity .12s}',
+        SB + ' [class*="_sessionRow"]:hover [class*="_rowActions"]{opacity:1}',
+        SB + ' [class*="_selected"]{background:rgba(28,28,31,0.09)!important}',
+        SB + ' [class*="_selected"]::before{background:rgba(28,28,31,0.4)}',
+        SB + ' [class*="_selected"]::after{background:#1c1c1f;border-color:#1c1c1f}',
+        // 底部设置行
+        SB + ' [class*="_settingsArea"]{padding:6px 4px!important;font-size:11.5px!important;letter-spacing:0.04em!important;' +
+          'color:var(--dsw-alias-label-secondary)!important}',
       )
 
       /* --- composer card shape ------------------------------------------------- */
