@@ -114,8 +114,19 @@ window.__ModuleLoader__.load({
       const theme = useTheme()
       const [, tick] = React.useState(0)
       React.useEffect(() => {
-        const id = setInterval(() => tick((n) => n + 1), 900)
-        return () => clearInterval(id)
+        const bump = () => tick((n) => n + 1)
+        const scroller = document.querySelector('[data-slot="sidebar"] > div')
+        const targets = [window, scroller].filter(Boolean)
+        targets.forEach((t) => t.addEventListener('scroll', bump, { passive: true }))
+        window.addEventListener('resize', bump)
+        document.addEventListener('scroll', bump, true)
+        const id = setInterval(bump, 900)
+        return () => {
+          clearInterval(id)
+          targets.forEach((t) => t.removeEventListener('scroll', bump))
+          window.removeEventListener('resize', bump)
+          document.removeEventListener('scroll', bump, true)
+        }
       }, [])
       const decor = theme && Array.isArray(theme.decor) ? theme.decor : []
       if (decor.length === 0) return null
@@ -133,7 +144,7 @@ window.__ModuleLoader__.load({
           style: {
             position: 'absolute',
             left: 'calc(' + (sidebarRect.right - 12) + 'px)',
-            top: (sidebarRect.top + 14) + 'px',
+            top: ((brandRect ? brandRect.top + 6 : sidebarRect.top + 14)) + 'px',
             transform: 'translateX(-100%)', textAlign: 'right',
             pointerEvents: 'none', userSelect: 'none',
           },
