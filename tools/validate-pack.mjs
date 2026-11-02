@@ -88,7 +88,8 @@ const GEOMETRY_RULES = {
   composerGlassInset: { type: 'number', min: 0, max: 40 },
   composerBlur: { type: 'number', min: 0, max: 40 },
   artOpacity: { type: 'number', min: 0, max: 1 },
-  bgFit: { type: 'enum', values: new Set(['cover', 'width', 'contain']) },
+  bgFit: { type: 'enum', values: new Set(['cover', 'width', 'contain', 'native']) },
+  bgNative: { type: 'string' },
   bgPosition: { type: 'string' },
   bgFill: { type: 'string' },
 }

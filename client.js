@@ -1002,6 +1002,8 @@ window.__ModuleLoader__.load({
       const chatGlassPadY = num(geometry.chatGlassPadY, 12)
       const artOpacity = num(geometry.artOpacity, 1)
       const bgFit = typeof geometry.bgFit === 'string' ? geometry.bgFit : 'cover'
+      // native：按 CSS 像素给定尺寸显示，配合「出图尺寸 = 窗口设备像素」实现 1:1 不重采样
+      const bgNative = typeof geometry.bgNative === 'string' && /^\d+x\d+$/.test(geometry.bgNative) ? geometry.bgNative : null
       const bgPosition = typeof geometry.bgPosition === 'string' ? geometry.bgPosition : 'center'
       const bgFill = typeof geometry.bgFill === 'string' ? geometry.bgFill : '#e9edf0'
       const frameBg = assetAvailable['composer.frameBg']
@@ -1041,7 +1043,9 @@ window.__ModuleLoader__.load({
             'background-image:url("' + bg + '");' +
             'background-repeat:no-repeat;' +
             'background-position:' + bgPosition + ';' +
-            'background-size:' + (bgFit === 'width' ? '100% auto' : bgFit === 'contain' ? 'contain' : 'cover') + ';' +
+            'background-size:' + (bgFit === 'native' && bgNative
+              ? bgNative.replace('x', 'px ') + 'px'
+              : bgFit === 'width' ? '100% auto' : bgFit === 'contain' ? 'contain' : 'cover') + ';' +
             'opacity:' + artOpacity + '}',
           darkScrim > 0
             ? 'body[data-ds-dark-theme]::before{background-image:linear-gradient(rgba(8,10,12,' + darkScrim + '),' +
