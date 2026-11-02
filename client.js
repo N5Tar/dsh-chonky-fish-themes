@@ -182,7 +182,7 @@ window.__ModuleLoader__.load({
             'border:0!important;border-radius:0!important;box-sizing:border-box;' +
             'background:rgba(255,255,255,0.97)!important;' +
             'box-shadow:none!important;clip-path:none!important;filter:none!important;' +
-            'padding:24px 28px!important' +
+            'padding:44px 30px!important' +
             '}',
           '[data-composer-card]::before{content:"";position:absolute;inset:0;z-index:-1;' +
             'background:url("' + frameBg + '") center/100% 100% no-repeat;pointer-events:none}',
