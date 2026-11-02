@@ -182,8 +182,10 @@ window.__ModuleLoader__.load({
             'border:0!important;border-radius:0!important;box-sizing:border-box;' +
             'background:rgba(255,255,255,0.97)!important;' +
             'box-shadow:none!important;clip-path:none!important;filter:none!important;' +
-            'padding:42px 34px!important;' +
-            'min-height:calc(720px / 3.0)' +
+            'max-width:620px!important;' +
+            'padding:20px 24px!important;' +
+            'min-height:160px!important;' +
+            'justify-content:space-between' +
             '}',
           '[data-composer-card]::before{content:"";position:absolute;inset:0;z-index:-1;' +
             'background:url("' + frameBg + '") center/100% 100% no-repeat;pointer-events:none}',
@@ -195,6 +197,11 @@ window.__ModuleLoader__.load({
           '[data-composer-card] [class*="_primary"]:disabled{background:#1c1c1f!important;opacity:0.4!important}',
           '[data-composer-card] [class*="_placeholder"]{color:#9a9aa0!important}',
           '[data-composer-card] [class*="_trailing"]{font-weight:500;letter-spacing:0.01em}',
+          '[data-slot="conversation.input.permission"] button{color:#d92d20!important;' +
+            'background:rgba(217,45,32,0.08)!important;border-radius:2px!important;padding:4px 8px!important}',
+          '[data-slot="conversation.input.permission"] button svg{color:#d92d20!important}',
+          '[data-slot="conversation.input.model"] button{font-weight:500}',
+          '[data-composer-card] [class*="_placeholder"]{padding-left:2px}',
         )
       } else if (composerChrome === 'css') {
         const c = Math.max(Math.min(chamfer, 16), 10)
@@ -221,6 +228,11 @@ window.__ModuleLoader__.load({
           '[data-composer-card] [class*="_placeholder"]{color:#9a9aa0!important}',
           '[data-composer-card] [class*="_tools"]{gap:10px}',
           '[data-composer-card] [class*="_trailing"]{font-weight:500;letter-spacing:0.01em}',
+          '[data-slot="conversation.input.permission"] button{color:#d92d20!important;' +
+            'background:rgba(217,45,32,0.08)!important;border-radius:2px!important;padding:4px 8px!important}',
+          '[data-slot="conversation.input.permission"] button svg{color:#d92d20!important}',
+          '[data-slot="conversation.input.model"] button{font-weight:500}',
+          '[data-composer-card] [class*="_placeholder"]{padding-left:2px}',
         )
       } else if (frame && frameReady) {
         // 素材外框：9-slice，内容叠在内部；垫板/切角由素材自身表达

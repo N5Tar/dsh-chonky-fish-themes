@@ -161,8 +161,8 @@
       "dark": "#5b5e64"
     },
     "--dsh-composer-card-max-width": {
-      "light": "720px",
-      "dark": "720px"
+      "light": "560px",
+      "dark": "560px"
     },
     "--dsh-composer-side-clearance": {
       "light": "16px",
