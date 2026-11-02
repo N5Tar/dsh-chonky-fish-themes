@@ -243,7 +243,7 @@
     "chamferStyle": "corner-cut",
     "plateColor": "#202023",
     "sidebarAlpha": 0.94,
-    "centerAlpha": 0.42,
+    "centerAlpha": 0.12,
     "heroCenterAlpha": 0.0,
     "composerPlateOffset": 8,
     "noiseOpacity": 0.03,
@@ -258,7 +258,12 @@
     "composerMinHeight": 178,
     "composerPaddingY": 24,
     "composerPaddingX": 28,
-    "composerGlassAlpha": 0.1
+    "composerGlassAlpha": 0.78,
+    "composerGlassInset": 10,
+    "composerBlur": 11,
+    "chatGlassAlpha": 0.78,
+    "chatGlassBlur": 11,
+    "artOpacity": 1
   },
   "copy": {
     "mode": "official",

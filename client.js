@@ -518,6 +518,50 @@ window.__ModuleLoader__.load({
       const sectionHdr = Array.from(document.querySelectorAll('div:has(> [data-slot="sidebar.workspaces"]) [class*="_section"]')).slice(0, 3).map((el) => String(el.outerHTML).replace(/\s+/g, ' ').slice(0, 220))
       const settingsRow = Array.from(document.querySelectorAll('[data-slot="sidebar"] [class*="_foot"], [data-slot="sidebar"] [class*="_settings"]')).slice(0, 3).map((el) => String(el.outerHTML).replace(/\s+/g, ' ').slice(0, 200))
       out.push({ label: 'sidebarDetail', rows, sectionHdr, settingsRow })
+      const content = document.querySelector('[data-conversation-content]')
+      const msgRows = []
+      if (content) {
+        const walk = (el, depth) => {
+          if (depth > 6 || msgRows.length > 24) return
+          for (const ch of el.children) {
+            const cls = String(ch.className || '')
+            if (/message|turn|user|assistant|row/i.test(cls) || ch.getAttribute('data-message-role')) {
+              const r = ch.getBoundingClientRect()
+              msgRows.push({ tag: ch.tagName.toLowerCase(), cls: cls.slice(0, 60), attrs: Array.from(ch.attributes).filter((a) => a.name.startsWith('data-')).map((a) => a.name + '=' + String(a.value).slice(0, 12)).slice(0, 4).join(','), size: Math.round(r.width) + 'x' + Math.round(r.height) })
+            }
+            walk(ch, depth + 1)
+          }
+        }
+        walk(content, 0)
+      }
+      const skel = []
+      const contentEl = document.querySelector('[data-conversation-content]')
+      const walkSkel = (el, depth) => {
+        if (depth > 12 || skel.length > 70) return
+        for (const ch of el.children) {
+          skel.push(depth + ' ' + ch.tagName.toLowerCase() + ' ' + String(ch.className || '').slice(0, 40))
+          walkSkel(ch, depth + 1)
+        }
+      }
+      if (contentEl) walkSkel(contentEl, 0)
+      out.push({ label: 'msgSkeleton', count: skel.length, skel })
+      const convEls = Array.from(document.querySelectorAll('[data-conversation-region], [data-conversation-content], [data-conversation-scroll]')).map((el) => {
+        const r = el.getBoundingClientRect()
+        return { region: el.getAttribute('data-conversation-region'), cls: String(el.className || '').slice(0, 36), size: Math.round(r.width) + 'x' + Math.round(r.height), kids: el.children.length }
+      })
+      out.push({ label: 'convEls', convEls })
+      const tree = []
+      const walkAll = (el, depth) => {
+        if (depth > 9 || tree.length > 80) return
+        for (const ch of el.children) {
+          const r = ch.getBoundingClientRect()
+          tree.push({ d: depth, tag: ch.tagName.toLowerCase(), cls: String(ch.className || '').slice(0, 44), attrs: Array.from(ch.attributes).filter((a) => a.name.startsWith('data-')).map((a) => a.name).slice(0, 3).join(','), size: Math.round(r.width) + 'x' + Math.round(r.height) })
+          walkAll(ch, depth + 1)
+        }
+      }
+      const frame = document.querySelector('[data-conversation-content] [class*="_frame"]')
+      if (frame) walkAll(frame, 0)
+      out.push({ label: 'messageTree', count: tree.length, tree })
       out.push({ label: 'sidebarScroll', col: sbInfo(sbCol, 'col'), root: sbInfo(sbRoot, 'root'), region: sbInfo(document.querySelector('[data-slot="sidebar.workspaces"]'), 'region') })
       out.push({ label: 'phase', hero: Boolean(document.querySelector('[data-content-phase="hero"]')), phaseEl: (document.querySelector('[data-content-phase]') || {}).getAttribute ? document.querySelector('[data-content-phase]').getAttribute('data-content-phase') : null })
       return out
@@ -589,7 +633,12 @@ window.__ModuleLoader__.load({
       const composerMinHeight = num(geometry.composerMinHeight, 178)
       const composerPaddingY = num(geometry.composerPaddingY, 24)
       const composerPaddingX = num(geometry.composerPaddingX, 28)
-      const composerGlassAlpha = num(geometry.composerGlassAlpha, 0.62)
+      const composerGlassAlpha = num(geometry.composerGlassAlpha, 0.78)
+      const composerGlassInset = num(geometry.composerGlassInset, 10)
+      const composerBlur = num(geometry.composerBlur, 11)
+      const chatGlassAlpha = num(geometry.chatGlassAlpha, 0.78)
+      const chatGlassBlur = num(geometry.chatGlassBlur, 11)
+      const artOpacity = num(geometry.artOpacity, 1)
       const frameBg = assetAvailable['composer.frameBg']
         ? assetUrl(theme.assets && theme.assets['composer.frameBg'])
         : null
@@ -623,7 +672,7 @@ window.__ModuleLoader__.load({
         out.push(
           'html{background-color:transparent!important}',
           'body::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;' +
-            'background:url("' + bg + '") center/cover no-repeat!important}',
+            'background:url("' + bg + '") center/cover no-repeat!important;opacity:' + artOpacity + '}',
           darkScrim > 0
             ? 'body[data-ds-dark-theme]::before{background-image:linear-gradient(rgba(8,10,12,' + darkScrim + '),' +
               'rgba(8,10,12,' + darkScrim + ')),url("' + bg + '")!important}'
@@ -711,6 +760,26 @@ window.__ModuleLoader__.load({
           'rgba(255,255,255,0) 0px,rgba(255,255,255,0.10) 40px)!important}',
       )
 
+      /* --- composer 内层玻璃（demo：inset + 8 角切角 + blur） --- */
+      out.push(
+        '[data-composer-card]{position:relative!important}',
+        '[data-composer-card]::before{content:"";position:absolute;inset:' + composerGlassInset + 'px;z-index:0;' +
+          'background:rgba(247,248,248,' + composerGlassAlpha + ');' +
+          'backdrop-filter:blur(' + composerBlur + 'px);-webkit-backdrop-filter:blur(' + composerBlur + 'px);' +
+          'clip-path:polygon(2.2% 0,97.8% 0,100% 12%,100% 88%,97.8% 100%,2.2% 100%,0 88%,0 12%);' +
+          'pointer-events:none}',
+        '[data-composer-card] > *{position:relative;z-index:1}',
+      )
+
+      /* --- 消息区逐条玻璃（demo message-surface：rgba + blur，直接铺在行背景） --- */
+      out.push(
+        '[data-conversation-region="chat"] [class*="_flowItem"]{' +
+          'background:rgba(248,249,250,' + chatGlassAlpha + ')!important;' +
+          'backdrop-filter:blur(' + chatGlassBlur + 'px);-webkit-backdrop-filter:blur(' + chatGlassBlur + 'px);' +
+          'border-radius:0!important}' +
+        '[data-conversation-region="chat"] [class*="_flowItem"] *{background-color:transparent!important}',
+      )
+
       /* --- 侧栏列表细节：工作区/会话行、树线、时间、选中态 --- */
       const SB = 'div:has(> [data-slot="sidebar"])'
       out.push(
@@ -752,11 +821,9 @@ window.__ModuleLoader__.load({
           '[data-composer-card]{' +
             'position:relative;isolation:isolate;' +
             'border:0!important;border-radius:0!important;box-sizing:border-box;' +
-            'background-image:url("' + frameBg + '"),' +
-              'linear-gradient(180deg,rgba(255,255,255,' + composerGlassAlpha + '),' +
-              'rgba(243,245,247,' + (composerGlassAlpha * 0.84).toFixed(3) + '))!important;' +
+            'background-image:url("' + frameBg + '")!important;' +
             'background-color:transparent!important;' +
-            'backdrop-filter:blur(12px) saturate(1.04);' +
+            'backdrop-filter:none!important;' +
             'background-size:100% 100%,auto!important;background-position:center,0 0!important;' +
             'background-repeat:no-repeat!important;background-origin:border-box!important;' +
             'background-clip:border-box!important;' +

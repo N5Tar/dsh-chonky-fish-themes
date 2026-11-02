@@ -81,6 +81,11 @@ const GEOMETRY_RULES = {
   composerPaddingY: { type: 'number', min: 0, max: 60 },
   composerPaddingX: { type: 'number', min: 0, max: 60 },
   composerGlassAlpha: { type: 'number', min: 0, max: 1 },
+  composerGlassInset: { type: 'number', min: 0, max: 40 },
+  composerBlur: { type: 'number', min: 0, max: 40 },
+  chatGlassAlpha: { type: 'number', min: 0, max: 1 },
+  chatGlassBlur: { type: 'number', min: 0, max: 40 },
+  artOpacity: { type: 'number', min: 0, max: 1 },
 }
 
 const RECOMMENDED_TOKENS = [
