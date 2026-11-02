@@ -131,6 +131,34 @@
     "--ds-font-family-code": {
       "light": "\"WS Mono\",\"JetBrains Mono\",monospace",
       "dark": "\"WS Mono\",\"JetBrains Mono\",monospace"
+    },
+    "--dsw-alias-button-info-fill": {
+      "light": "#1c1c1f",
+      "dark": "#f2f2f3"
+    },
+    "--dsw-alias-button-info-hover": {
+      "light": "#000000",
+      "dark": "#ffffff"
+    },
+    "--dsw-alias-state-business-primary": {
+      "light": "#1c1c1f",
+      "dark": "#f2f2f3"
+    },
+    "--dsw-alias-state-business-tertiary": {
+      "light": "rgba(28,28,31,0.08)",
+      "dark": "rgba(255,255,255,0.12)"
+    },
+    "--dsw-alias-interactive-bg-hover": {
+      "light": "rgba(28,28,31,0.06)",
+      "dark": "rgba(255,255,255,0.08)"
+    },
+    "--dsw-alias-label-caption": {
+      "light": "#9a9aa0",
+      "dark": "#6f7278"
+    },
+    "--dsw-alias-label-dimmed": {
+      "light": "#b4b4ba",
+      "dark": "#5b5e64"
     }
   },
   "fonts": [
@@ -208,7 +236,8 @@
     "noiseOpacity": 0.03,
     "darkScrim": 0.72,
     "composerFrameSlice": 96,
-    "composerFrameWidth": 26
+    "composerFrameWidth": 26,
+    "composerChrome": "css"
   },
   "copy": {
     "mode": "official",

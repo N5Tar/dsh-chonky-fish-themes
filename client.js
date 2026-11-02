@@ -115,6 +115,7 @@ window.__ModuleLoader__.load({
         : null
       const frameSlice = num(geometry.composerFrameSlice, 96)
       const frameWidth = num(geometry.composerFrameWidth, 26)
+      const composerChrome = typeof geometry.composerChrome === 'string' ? geometry.composerChrome : 'css'
 
       const out = []
 
@@ -170,7 +171,30 @@ window.__ModuleLoader__.load({
       )
 
       /* --- composer card shape ------------------------------------------------- */
-      if (frame && frameReady) {
+      if (composerChrome === 'css') {
+        const c = Math.max(chamfer, 12)
+        // 纯 CSS 卡片：白玻璃 + 切角 + 深色偏置垫板（drop-shadow 跟着 clip 形状走）
+        out.push(
+          '[data-composer-card]{' +
+            'position:relative;isolation:isolate;' +
+            'border:1px solid color-mix(in srgb,var(--dsw-alias-label-primary) 55%,transparent)!important;' +
+            'border-radius:0!important;box-sizing:border-box;' +
+            'background:color-mix(in srgb,#fff 78%,transparent)!important;' +
+            'backdrop-filter:blur(18px) saturate(1.05);' +
+            'box-shadow:none!important;' +
+            'clip-path:polygon(' + c + 'px 0,100% 0,100% calc(100% - ' + c + 'px),' +
+            'calc(100% - ' + c + 'px) 100%,0 100%,0 ' + c + 'px)' +
+            '}',
+          '[data-composer-card]{filter:drop-shadow(' + Math.max(plateOffset, 6) + 'px ' +
+            Math.max(plateOffset, 6) + 'px 0 ' + plateColor + ')}',
+          // 工具行：+ 方形描边、提交方形深色、placeholder 收色
+          '[data-composer-card] [class*="_add"]{width:32px;height:32px;border:1px solid var(--dsw-alias-border-l3)!important;' +
+            'border-radius:2px!important;background:transparent!important}',
+          '[data-composer-card] [class*="_primary"]{border-radius:2px!important;' +
+            'background:var(--dsw-alias-label-primary)!important;color:var(--dsw-alias-bg-base)!important}',
+          '[data-composer-card] [class*="_placeholder"]{color:var(--dsw-alias-label-tertiary)!important}',
+        )
+      } else if (frame && frameReady) {
         // 素材外框：9-slice，内容叠在内部；垫板/切角由素材自身表达
         out.push(
           '[data-composer-card]{' +
