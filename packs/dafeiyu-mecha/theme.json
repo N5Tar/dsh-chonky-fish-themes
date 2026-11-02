@@ -209,9 +209,7 @@
     "railWidth": 34,
     "chatGlassPadX": 22,
     "chatGlassPadY": 12,
-    "bgFit": "contain",
-    "bgPosition": "center top",
-    "bgFill": "#cfced2"
+    "bgFit": "cover"
   },
   "copy": {
     "mode": "official",
