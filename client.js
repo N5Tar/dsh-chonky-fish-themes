@@ -1049,14 +1049,16 @@ window.__ModuleLoader__.load({
               : bgFit === 'native' && bgNative
               ? bgNative.replace('x', 'px ') + 'px'
               : bgFit === 'width' ? '100% auto' : bgFit === 'contain' ? 'contain' : 'cover') + ';' +
-            'opacity:' + artOpacity + '}' +
-            (bgPanorama
-              ? ',body::before{filter:blur(' + panoramaBlur + 'px) saturate(0.92) brightness(1.02);' +
-                'transform:scale(1.08);transform-origin:center}' +
-                ',body::after{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;' +
-                'background-image:url("' + bg + '");background-repeat:no-repeat;background-position:center;' +
-                'background-size:contain;opacity:' + artOpacity + '}'
-              : ''),
+            'opacity:' + artOpacity + '}',
+          ...(bgPanorama
+            ? [
+                'body::before{filter:blur(' + panoramaBlur + 'px) saturate(0.92) brightness(1.02);' +
+                  'transform:scale(1.08);transform-origin:center}',
+                'body::after{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;' +
+                  'background-image:url("' + bg + '");background-repeat:no-repeat;background-position:center;' +
+                  'background-size:contain;opacity:' + artOpacity + '}',
+              ]
+            : []),
           darkScrim > 0
             ? 'body[data-ds-dark-theme]::before{background-image:linear-gradient(rgba(8,10,12,' + darkScrim + '),' +
               'rgba(8,10,12,' + darkScrim + ')),url("' + bg + '")!important}'
@@ -1543,3 +1545,5 @@ window.__ModuleLoader__.load({
 /* revert cover 1793624703 */
 
 /* css rail 1793624956 */
+
+/* pano armor 1793670335 */
