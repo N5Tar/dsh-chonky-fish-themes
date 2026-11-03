@@ -7,7 +7,6 @@ DeepSeek Harness（DSH）皮肤引擎 + `dafeiyu-mecha` 主题包。
 ## 结构
 
 ```
-assets/<style>/          拖入的原始素材归档（不参与打包；见 assets/dafeiyu-mecha/README.md）
 index.js                 Host 半：/skin 静态路由 + theme.json 注入 _available（文件是否就绪）
 client.js                Client 半：读 theme.json → 覆盖 token + 注入样式 + 装饰层（overlay）
 packs/<id>/theme.json    主题契约：tokens / geometry / copy / decor / capabilities
@@ -84,7 +83,7 @@ node --check client.js && node --check index.js
 
 ## 素材状态
 
-原始素材归档在 `assets/dafeiyu-mecha/`（风格目录 = 主题包 id），运行产物在 `packs/dafeiyu-mecha/`。
+运行产物在 `packs/<id>/`（本仓库只存运行需要的加工产物；原始大图不入库，保留在本机归档目录，避免仓库体积膨胀）。
 
 | 素材 | 状态 |
 | --- | --- |
