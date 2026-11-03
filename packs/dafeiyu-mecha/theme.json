@@ -209,7 +209,7 @@
     "railWidth": 34,
     "chatGlassPadX": 22,
     "chatGlassPadY": 12,
-    "bgFit": "panorama"
+    "bgFit": "cover"
   },
   "copy": {
     "mode": "official",
