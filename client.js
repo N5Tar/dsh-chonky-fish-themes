@@ -1006,6 +1006,8 @@ window.__ModuleLoader__.load({
       const bgNative = typeof geometry.bgNative === 'string' && /^\d+x\d+$/.test(geometry.bgNative) ? geometry.bgNative : null
       const bgPosition = typeof geometry.bgPosition === 'string' ? geometry.bgPosition : 'center'
       const bgFill = typeof geometry.bgFill === 'string' ? geometry.bgFill : '#e9edf0'
+      const bgPanorama = bgFit === 'panorama'
+      const panoramaBlur = num(geometry.panoramaBlur, 28)
       const frameBg = assetAvailable['composer.frameBg']
         ? assetUrl(theme.assets && theme.assets['composer.frameBg'], packIdOf(theme))
         : null
@@ -1043,10 +1045,18 @@ window.__ModuleLoader__.load({
             'background-image:url("' + bg + '");' +
             'background-repeat:no-repeat;' +
             'background-position:' + bgPosition + ';' +
-            'background-size:' + (bgFit === 'native' && bgNative
+            'background-size:' + (bgPanorama ? 'cover'
+              : bgFit === 'native' && bgNative
               ? bgNative.replace('x', 'px ') + 'px'
               : bgFit === 'width' ? '100% auto' : bgFit === 'contain' ? 'contain' : 'cover') + ';' +
-            'opacity:' + artOpacity + '}',
+            'opacity:' + artOpacity + '}' +
+            (bgPanorama
+              ? ',body::before{filter:blur(' + panoramaBlur + 'px) saturate(0.92) brightness(1.02);' +
+                'transform:scale(1.08);transform-origin:center}' +
+                ',body::after{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;' +
+                'background-image:url("' + bg + '");background-repeat:no-repeat;background-position:center;' +
+                'background-size:contain;opacity:' + artOpacity + '}'
+              : ''),
           darkScrim > 0
             ? 'body[data-ds-dark-theme]::before{background-image:linear-gradient(rgba(8,10,12,' + darkScrim + '),' +
               'rgba(8,10,12,' + darkScrim + ')),url("' + bg + '")!important}'
