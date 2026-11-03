@@ -1,0 +1,244 @@
+/* 豆包学院教师 · 包私有样式（customCss 能力）
+ *
+ * 布局沿用引擎的「装甲导轨 + 资料卡」方案；本文件只做主题层的调色与点缀：
+ * - 输入卡（深色外框底板）内部控件改用浅色文字与绯红主按钮；
+ * - 侧栏补绯红点缀（右缘细线、新建会话按钮、选中行、分组箭头、悬停）；
+ * - 透明度滑块拇指与滚动条微调。
+ *
+ * 选择器约定：优先用 [data-slot] / data-* / 引擎 --cf-* 变量；少量 *_hashedClass
+ * 选择器与引擎保持一致，升级 DSH 时需同步适配。
+ */
+
+/* ---------- 侧栏：绯红点缀 ---------- */
+
+/* 右缘渐隐双段细线（对齐设计稿的 sidebar edge accent） */
+div:has(> [data-slot="sidebar"]) { position: relative; }
+div:has(> [data-slot="sidebar"])::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  pointer-events: none;
+  z-index: 20;
+  background: linear-gradient(
+    180deg,
+    transparent 0%,
+    var(--cf-accent, #ac3f53) 26%,
+    var(--cf-accent, #ac3f53) 41%,
+    transparent 49%,
+    var(--cf-accent, #ac3f53) 75%,
+    transparent 100%
+  );
+  opacity: 0.35;
+}
+
+/* 新建会话：绯红实心按钮 + 下沿投影（引擎资料卡/导轨之外的唯一强色块） */
+[data-slot="sidebar"] [class*="_newSession"] {
+  background-image: linear-gradient(180deg, #a5364f 0%, #8f2c41 100%) !important;
+  border-color: #7d263a !important;
+  color: var(--cf-on-accent, #ffffff) !important;
+  box-shadow: none !important;
+}
+[data-slot="sidebar"] [class*="_newSession"]:hover {
+  background-image: linear-gradient(180deg, #b2405a 0%, #9c3249 100%) !important;
+}
+[data-slot="sidebar"] [class*="_newSession"] svg {
+  color: var(--cf-on-accent, #ffffff) !important;
+}
+
+/* 功能面板入口：图标与激活态染绯红 */
+[data-slot="sidebar"] [class*="_panelRow"] svg {
+  color: color-mix(in srgb, var(--cf-accent, #ac3f53) 62%, var(--dsw-alias-label-secondary, #766a71)) !important;
+}
+[data-slot="sidebar"] [class*="_panelRow"]:hover svg {
+  color: var(--cf-accent, #ac3f53) !important;
+}
+[data-slot="sidebar"] [class*="_panelActive"],
+[data-slot="sidebar"] [class*="_panelActive"] svg {
+  color: var(--cf-accent-strong, #8f2c41) !important;
+}
+
+/* 工作区分组标题：三角标记改绯红 */
+[data-slot="sidebar"] [class*="_sectionHeader"] [class*="_sectionLabel"]::before {
+  background: var(--cf-accent, #ac3f53) !important;
+}
+
+/* 会话/工作区行：悬停与选中带绯红底，选中行左侧 2px 强调线 */
+[data-slot="sidebar"] [class*="_projectRow"]:hover,
+[data-slot="sidebar"] [class*="_sessionRow"]:hover {
+  background: var(--cf-accent-soft, rgba(172, 63, 83, 0.12)) !important;
+}
+[data-slot="sidebar"] [class*="_selected"] {
+  background: var(--cf-accent-soft, rgba(172, 63, 83, 0.12)) !important;
+  box-shadow: inset 2px 0 var(--cf-accent, #ac3f53) !important;
+}
+[data-slot="sidebar"] [class*="_selected"] [class*="_title"] {
+  color: var(--dsw-alias-label-primary, #242126) !important;
+}
+[data-slot="sidebar"] [class*="_selected"]::after {
+  background: var(--cf-accent, #ac3f53) !important;
+  border-color: var(--cf-accent, #ac3f53) !important;
+}
+
+/* 搜索/视图/添加工作区等工具按钮：悬停绯红 */
+[data-slot="sidebar"] [class*="_searchButton"]:hover,
+[data-slot="sidebar"] [class*="_headerActions"] button:hover,
+[data-slot="sidebar"] [class*="_sectionHeader"] button:hover {
+  color: var(--cf-accent, #ac3f53) !important;
+}
+
+/* ---------- 输入卡：深色底板内的浅色控件 ---------- */
+
+/* 左侧绯红竖条（设计稿 composer 的签名细节；覆盖引擎内层玻璃 ::before） */
+[data-composer-card]::before {
+  content: "";
+  position: absolute;
+  inset: auto;
+  left: 0;
+  top: 18px;
+  width: 3px;
+  height: 53px;
+  border-radius: 3px;
+  background: var(--cf-accent, #ac3f53);
+  clip-path: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  pointer-events: none;
+  z-index: 2;
+}
+
+[data-composer-card] textarea,
+[data-composer-card] [contenteditable="true"],
+[data-composer-card] [class*="_input"] {
+  color: var(--cf-on-plate, #f0e7ea) !important;
+  caret-color: var(--cf-accent, #ac3f53) !important;
+}
+[data-composer-card] textarea::placeholder,
+[data-composer-card] [class*="_placeholder"] {
+  color: var(--cf-on-plate-dim, #b6a9ae) !important;
+}
+
+/* 附件“+”按钮：浅描边 */
+[data-composer-card] [class*="_add"] {
+  color: var(--cf-on-plate, #f0e7ea) !important;
+  border-color: color-mix(in srgb, var(--cf-on-plate, #f0e7ea) 28%, transparent) !important;
+  background: transparent !important;
+}
+[data-composer-card] [class*="_add"]:hover {
+  background: color-mix(in srgb, var(--cf-on-plate, #f0e7ea) 12%, transparent) !important;
+}
+
+/* 发送按钮：绯红实心 */
+[data-composer-card] [class*="_primary"] {
+  background: var(--cf-accent, #ac3f53) !important;
+  color: var(--cf-on-accent, #ffffff) !important;
+  border-radius: 7px !important;
+}
+[data-composer-card] [class*="_primary"]:hover {
+  background: var(--cf-accent-strong, #8f2c41) !important;
+}
+[data-composer-card] [class*="_primary"] svg {
+  color: var(--cf-on-accent, #ffffff) !important;
+}
+[data-composer-card] [class*="_primary"]:disabled {
+  background: var(--cf-accent, #ac3f53) !important;
+  opacity: 0.45 !important;
+}
+
+/* 模型选择 pill：半透明浅底 */
+[data-slot="conversation.input.model"] button {
+  color: var(--cf-on-plate, #f0e7ea) !important;
+  background: color-mix(in srgb, var(--cf-on-plate, #f0e7ea) 9%, transparent) !important;
+  border-color: color-mix(in srgb, var(--cf-on-plate, #f0e7ea) 14%, transparent) !important;
+  border-radius: 6px !important;
+}
+[data-slot="conversation.input.model"] button:hover {
+  background: color-mix(in srgb, var(--cf-on-plate, #f0e7ea) 16%, transparent) !important;
+}
+[data-slot="conversation.input.model"] button svg {
+  color: var(--cf-on-plate-dim, #b6a9ae) !important;
+}
+
+/* 字数/上下文等尾部信息：浅灰 */
+[data-composer-card] [class*="_trailing"] {
+  color: var(--cf-on-plate-dim, #b6a9ae) !important;
+}
+
+/* 权限/错误提示条保持宿主红色语义，仅统一圆角 */
+[data-slot="conversation.input.permission"] button {
+  border-radius: 6px !important;
+}
+
+/* ---------- 透明度滑块 ---------- */
+
+.cf-tune-range::-webkit-slider-thumb {
+  background: var(--cf-accent, #ac3f53) !important;
+  border-color: #f6eff1 !important;
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--cf-accent, #ac3f53) 60%, #ffffff) !important;
+}
+.cf-tune-range::-moz-range-thumb {
+  background: var(--cf-accent, #ac3f53) !important;
+  border-color: #f6eff1 !important;
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--cf-accent, #ac3f53) 60%, #ffffff) !important;
+}
+.cf-tune-range:focus-visible {
+  outline-color: var(--cf-accent, #ac3f53) !important;
+}
+
+/* ---------- 暗色模式：保持同一套绯红语义 ---------- */
+
+body[data-ds-dark-theme] [data-slot="sidebar"] [class*="_newSession"] {
+  background: var(--cf-accent-strong, #e695a8) !important;
+  color: var(--cf-on-accent, #1a1418) !important;
+}
+body[data-ds-dark-theme] [data-slot="sidebar"] [class*="_newSession"] svg {
+  color: var(--cf-on-accent, #1a1418) !important;
+}
+
+/* ---------- 教师主题不采用引擎的深色底部装甲条 ---------- */
+/* 引擎默认在侧栏底部叠一条深色装甲条（client.js 内联 SVG），与暖白纸感冲突，且会压住账户/设置行；本主题隐藏。 */
+[data-cf="bottom-armor"] {
+  display: none !important;
+}
+
+/* ---------- 品牌行：不换行，避免 FACULTY 标签折成两行 ---------- */
+[data-cf="brand-block"] div {
+  white-space: nowrap !important;
+}
+
+/* ---------- 教师主题：不展示引擎的装甲导轨，侧栏回归纸面留白 ---------- */
+/* 导轨是引擎按 34px 宽度铺满全高的 overlay（图片素材或内置 SVG）；教师主题按参考稿改为无导轨的纸面侧栏，
+   同时把引擎为导轨预留的 34px 左移量与底部装甲条留白收回，避免内容整体右移、底部空一格。 */
+[data-cf="armor-rail"] { display: none !important; }
+[data-slot="sidebar"] > div > * { margin-left: 0 !important; }
+[data-slot="sidebar"] > div { padding-bottom: 8px !important; }
+[data-cf="brand-block"] { left: 14px !important; }
+[data-cf="profile-card"] {
+  left: 12px !important;
+  width: calc(var(--cf-sidebar-width, 280px) - 24px) !important;
+}
+
+/* ---------- 折叠态：overlay 装饰全部让位给 56px 图标栏 ---------- */
+[data-sidebar-collapsed] [data-cf="brand-block"],
+[data-sidebar-collapsed] [data-cf="profile-card"],
+[data-sidebar-collapsed] [data-cf="armor-rail"],
+[data-sidebar-collapsed] [data-cf="bottom-armor"] {
+  display: none !important;
+}
+[data-sidebar-collapsed] div:has(> [data-slot="sidebar"])::after {
+  display: none !important;
+}
+
+/* ---------- 功能面板图标统一为哑光绯红 ---------- */
+[data-slot="sidebar"] [class*="_panelGlyph"],
+[data-slot="sidebar"] [class*="_panelGlyph"] svg,
+[data-slot="sidebar"] [class*="_panelRow"] svg {
+  color: #a97e88 !important;
+}
+[data-slot="sidebar"] [class*="_panelRow"]:hover [class*="_panelGlyph"],
+[data-slot="sidebar"] [class*="_panelRow"]:hover [class*="_panelGlyph"] svg,
+[data-slot="sidebar"] [class*="_panelRow"]:hover svg {
+  color: var(--cf-accent, #ac3f53) !important;
+}

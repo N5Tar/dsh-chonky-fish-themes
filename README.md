@@ -53,12 +53,13 @@ node --check client.js && node --check index.js
 - **默认**：注销引擎注入的样式与 token 覆盖，回到 DSH 原生外观（无需重启）；
 - **每个已安装主题**：读取该包自己的 `theme.json`（tokens / geometry / copy / decor / assets）重新渲染。
 
-当前内置两个主题包：
+当前内置三个主题包：
 
 | id | 名称 | 说明 |
 | --- | --- | --- |
 | `dafeiyu-mecha` | 大肥鱼·白鲨轻甲 | 基础主题 |
 | `dafeiyu-armor` | 大肥鱼·白鲨装甲 | 机甲化变体（白色外骨骼装甲、蓝色微光） |
+| `doubao-teacher` | 豆包学院教师 | 教师主题：暖白纸感、绯红标记、教室插画；深色输入卡配包私有样式（`custom.css`） |
 
 选择存在 `localStorage['cf-theme-pack']`（`default` 或包 id；旧的 `cf-theme-mode` 会自动迁移），刷新后保持。
 
@@ -71,11 +72,19 @@ node --check client.js && node --check index.js
 
 主题之间完全独立：名字、`theme.json`、素材互不共享；引擎不写死任何包 id。
 
+### 引擎提供给 `customCss` 的挂钩
+
+- **overlay 元素带 `data-cf` 属性**：`brand-block` / `bottom-armor` / `armor-rail` / `profile-card`。包可以在 `custom.css` 里定位、隐藏或重排这些 overlay（比依赖哈希类名稳定）；`doubao-teacher` 即用 `[data-cf="armor-rail"]{display:none}` 去掉装甲导轨、改用纸面侧栏。
+- **`--cf-sidebar-width`**：overlay 每次渲染时把侧栏实测宽度写到根元素，供 `custom.css` 计算卡片/装饰宽度（如 `width: calc(var(--cf-sidebar-width) - 24px)`）。
+- 预览生成器对「customCss 里隐藏 armor-rail」的主题会自动不画预览导轨，保持预览与实机一致。
+
 ## 透明玻璃
 
 输入卡与消息列共用一套「透明度」：`theme.geometry.composerGlassAlpha` 是默认值，用户在上缘拉手（⌃）里调过之后以 `localStorage['cf-glass-transparency']` 为准，`blur = round(12 × alpha)` 联动。
 
-已清理的未实现声明：`bg.wide`、`wordmark`、`signature`、`decor.hud`、`icon`、`customCss`、`fonts`、`chrome.*`（引擎不读取）。`validate-pack` 现在 0 error / 0 warning。
+包私有样式（`customCss`）：主题包可在 `theme.json` 里用 `customCss` 指向一个包内 `.css`，并在 `capabilities` 里声明 `customCss`；引擎在 base 样式之后注入该文件，切主题时随主题一起卸载。约定与维护代价见 `docs/skin/theme-pack-spec.md` §3.10。首个使用方是 `doubao-teacher`（深色输入卡内的浅色控件、绯红点缀）。
+
+已清理的未实现声明：`bg.wide`、`wordmark`、`signature`、`decor.hud`、`icon`、`fonts`、`chrome.*`（引擎不读取）。`validate-pack` 现在 0 error / 0 warning。
 
 ## 主题包契约
 
@@ -90,4 +99,4 @@ node --check client.js && node --check index.js
 | `bg.webp` 底图 | ✅ 已接入 |
 | `portrait.webp` 资料卡头像 | ✅ 已接入 |
 | `decor/composer-frame*.png` 输入卡外框 | ✅ 已接入（暗色版待补） |
-| `decor/sidebar-edge.png` 侧栏装甲导轨 | ⬜ 槽位已接，缺素材时用内置 SVG |
+| `decor/sidebarEdge` 侧栏左缘装饰 | ✅ `doubao-teacher` 提供纸感书脊素材（默认由包内 `custom.css` 隐藏）；无素材时引擎用内置 SVG 导轨 |

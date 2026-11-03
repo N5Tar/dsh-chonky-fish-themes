@@ -1,0 +1,353 @@
+{
+  "packVersion": "0.1.0",
+  "id": "doubao-teacher",
+  "minEngine": "0.1.0",
+  "meta": {
+    "name": {
+      "zh": "豆包学院教师",
+      "en": "Doubao Academy Teacher"
+    },
+    "description": {
+      "zh": "学院教师主题：暖白纸感、绯红标记、教室插画与教师立绘",
+      "en": "Academy teacher theme: warm paper surfaces, crimson accents, classroom artwork"
+    },
+    "author": "chonky-fish",
+    "version": "0.1.0",
+    "colorScheme": "light"
+  },
+  "tokens": {
+    "--dsw-alias-bg-base": {
+      "light": "#f7f3f4",
+      "dark": "#141014"
+    },
+    "--dsw-alias-bg-layer-1": {
+      "light": "#fffdfd",
+      "dark": "#1c161b"
+    },
+    "--dsw-alias-bg-layer-2": {
+      "light": "#fbf7f8",
+      "dark": "#231c21"
+    },
+    "--dsw-alias-bg-overlay": {
+      "light": "rgba(255,253,253,0.95)",
+      "dark": "rgba(28,22,27,0.95)"
+    },
+    "--dsw-specific-sidebar-fill": {
+      "light": "#fbf7f8",
+      "dark": "#171216"
+    },
+    "--dsw-specific-input-major": {
+      "light": "rgba(41,34,41,0.92)",
+      "dark": "rgba(30,24,29,0.92)"
+    },
+    "--dsw-specific-menu": {
+      "light": "#fffdfd",
+      "dark": "#1c161b"
+    },
+    "--dsw-alias-label-primary": {
+      "light": "#242126",
+      "dark": "#f3eef0"
+    },
+    "--dsw-alias-label-secondary": {
+      "light": "#766a71",
+      "dark": "#b0a2a8"
+    },
+    "--dsw-alias-label-tertiary": {
+      "light": "#9c8f96",
+      "dark": "#85777d"
+    },
+    "--dsw-alias-label-caption": {
+      "light": "#a89aa1",
+      "dark": "#8c7e84"
+    },
+    "--dsw-alias-label-dimmed": {
+      "light": "#c8bcc2",
+      "dark": "#63575d"
+    },
+    "--dsw-alias-border-l1": {
+      "light": "rgba(63,39,48,0.08)",
+      "dark": "rgba(255,255,255,0.09)"
+    },
+    "--dsw-alias-border-l2": {
+      "light": "rgba(63,39,48,0.15)",
+      "dark": "rgba(255,255,255,0.15)"
+    },
+    "--dsw-alias-border-l3": {
+      "light": "rgba(63,39,48,0.24)",
+      "dark": "rgba(255,255,255,0.22)"
+    },
+    "--dsw-alias-brand-primary": {
+      "light": "#8f2c41",
+      "dark": "#e08aa0"
+    },
+    "--dsw-alias-state-error-primary": {
+      "light": "#b23a4e",
+      "dark": "#ff8fa3"
+    },
+    "--dsw-alias-state-warn-primary": {
+      "light": "#a86f14",
+      "dark": "#e0b45c"
+    },
+    "--dsw-alias-state-success-primary": {
+      "light": "#2e7d5b",
+      "dark": "#6cc79a"
+    },
+    "--dsw-alias-state-idle-primary": {
+      "light": "#9c8f96",
+      "dark": "#85777d"
+    },
+    "--dsw-radius-xs": {
+      "light": "2px",
+      "dark": "2px"
+    },
+    "--dsw-radius-sm": {
+      "light": "3px",
+      "dark": "3px"
+    },
+    "--dsw-radius-md": {
+      "light": "5px",
+      "dark": "5px"
+    },
+    "--dsw-radius-lg": {
+      "light": "7px",
+      "dark": "7px"
+    },
+    "--dsw-radius-xl": {
+      "light": "10px",
+      "dark": "10px"
+    },
+    "--dsw-radius-panel": {
+      "light": "0px",
+      "dark": "0px"
+    },
+    "--dsw-elevation-soft": {
+      "light": "0 18px 44px -16px rgba(63,20,32,0.22)",
+      "dark": "0 18px 44px -16px rgba(0,0,0,0.62)"
+    },
+    "--dsw-focus-ring-color": {
+      "light": "#ac3f53",
+      "dark": "#e08aa0"
+    },
+    "--dsh-scrollbar-thumb": {
+      "light": "rgba(63,39,48,0.22)",
+      "dark": "rgba(255,255,255,0.20)"
+    },
+    "--dsw-font-family": {
+      "light": "\"Inter\",\"PingFang SC\",\"Noto Sans SC\",sans-serif",
+      "dark": "\"Inter\",\"PingFang SC\",\"Noto Sans SC\",sans-serif"
+    },
+    "--dsw-font-family-brand": {
+      "light": "\"Inter\",\"PingFang SC\",\"Noto Sans SC\",sans-serif",
+      "dark": "\"Inter\",\"PingFang SC\",\"Noto Sans SC\",sans-serif"
+    },
+    "--ds-font-family-code": {
+      "light": "\"JetBrains Mono\",\"SFMono-Regular\",ui-monospace,monospace",
+      "dark": "\"JetBrains Mono\",\"SFMono-Regular\",ui-monospace,monospace"
+    },
+    "--dsw-alias-button-info-fill": {
+      "light": "#8f2c41",
+      "dark": "#e08aa0"
+    },
+    "--dsw-alias-button-info-hover": {
+      "light": "#ac3f53",
+      "dark": "#f0a6b8"
+    },
+    "--dsw-alias-state-business-primary": {
+      "light": "#8f2c41",
+      "dark": "#e08aa0"
+    },
+    "--dsw-alias-state-business-tertiary": {
+      "light": "rgba(143,44,65,0.10)",
+      "dark": "rgba(224,138,160,0.14)"
+    },
+    "--dsw-alias-interactive-bg-hover": {
+      "light": "rgba(143,44,65,0.08)",
+      "dark": "rgba(224,138,160,0.12)"
+    },
+    "--dsh-composer-card-max-width": {
+      "light": "780px",
+      "dark": "780px"
+    },
+    "--dsh-composer-side-clearance": {
+      "light": "24px",
+      "dark": "24px"
+    },
+    "--dsh-chat-content-width": {
+      "light": "680px",
+      "dark": "680px"
+    },
+    "--cf-accent": {
+      "light": "#ac3f53",
+      "dark": "#d66a80"
+    },
+    "--cf-accent-strong": {
+      "light": "#8f2c41",
+      "dark": "#e695a8"
+    },
+    "--cf-accent-soft": {
+      "light": "rgba(172,63,83,0.12)",
+      "dark": "rgba(214,106,128,0.16)"
+    },
+    "--cf-on-accent": {
+      "light": "#ffffff",
+      "dark": "#1a1418"
+    },
+    "--cf-on-plate": {
+      "light": "#f0e7ea",
+      "dark": "#f0e7ea"
+    },
+    "--cf-on-plate-dim": {
+      "light": "#b6a9ae",
+      "dark": "#b6a9ae"
+    }
+  },
+  "assets": {
+    "bg.main": "bg.webp",
+    "portrait": "portrait.webp",
+    "noise": "noise.png",
+    "composer.frame": "decor/composer-frame.png",
+    "composer.grain": "decor/composer-grain.png",
+    "composer.frameBg": "decor/composer-frame-bg.png",
+    "decor.sidebarEdge": "decor/sidebar-edge-thread.png"
+  },
+  "geometry": {
+    "frameInset": 12,
+    "chamfer": 18,
+    "chamferStyle": "corner-cut",
+    "plateColor": "#2a2228",
+    "sidebarAlpha": 0.94,
+    "centerAlpha": 0.34,
+    "heroCenterAlpha": 0.0,
+    "composerPlateOffset": 8,
+    "noiseOpacity": 0.03,
+    "darkScrim": 0.72,
+    "composerFrameSlice": 96,
+    "composerFrameWidth": 26,
+    "composerChrome": "frame",
+    "portraitZoom": 100,
+    "portraitFocusY": 38,
+    "profilePortraitHeight": 210,
+    "composerMaxWidth": 780,
+    "composerMinHeight": 150,
+    "composerPaddingY": 18,
+    "composerPaddingX": 32,
+    "composerGlassAlpha": 0.12,
+    "composerGlassInset": 10,
+    "composerBlur": 1,
+    "artOpacity": 1,
+    "railWidth": 20,
+    "chatGlassPadX": 22,
+    "chatGlassPadY": 12,
+    "bgFit": "cover"
+  },
+  "copy": {
+    "mode": "official",
+    "brandMicroline": "DOUBAO · ACADEMY",
+    "statusLabel": "FACULTY 02A",
+    "profile": {
+      "name": "豆包老师",
+      "subtitle": "学院教师 · 02 班",
+      "label": "DOUBAO ACADEMY",
+      "signature": "Doubao"
+    },
+    "tune": {
+      "label": "透明度",
+      "expand": "展开透明度滑块",
+      "collapse": "收起透明度滑块",
+      "collapseTitle": "收起透明度设置",
+      "rangeLabel": "会话和 Composer 联动透明度，数值越大越透明",
+      "groupLabel": "界面透明度设置"
+    }
+  },
+  "decor": [
+    {
+      "kind": "text",
+      "anchor": "hero.topLeft",
+      "x": "2.5%",
+      "y": "3.5%",
+      "text": "DOUBAO\nACADEMY",
+      "font": "code",
+      "size": 11,
+      "letterSpacing": "0.18em",
+      "lineHeight": 1.5,
+      "opacity": 0.55,
+      "color": "label-tertiary"
+    },
+    {
+      "kind": "text",
+      "anchor": "hero.topLeft",
+      "x": "2.5%",
+      "y": "10%",
+      "text": "TEACH\nGUIDE\nINSPIRE\nGROW",
+      "font": "code",
+      "size": 9.5,
+      "letterSpacing": "0.12em",
+      "lineHeight": 1.7,
+      "opacity": 0.45,
+      "color": "label-tertiary"
+    },
+    {
+      "kind": "text",
+      "anchor": "hero.title",
+      "x": 0,
+      "y": -118,
+      "text": "//02A",
+      "font": "brand",
+      "size": 52,
+      "letterSpacing": "0.01em",
+      "lineHeight": 1,
+      "opacity": 0.26,
+      "color": "label-tertiary"
+    },
+    {
+      "kind": "text",
+      "anchor": "hero.title",
+      "x": 0,
+      "y": -38,
+      "text": "DOUBAO ACADEMY",
+      "font": "code",
+      "size": 11,
+      "letterSpacing": "0.32em",
+      "lineHeight": 1,
+      "opacity": 0.45,
+      "color": "label-tertiary"
+    },
+    {
+      "kind": "rail",
+      "anchor": "rail",
+      "items": [
+        "DOUBAO",
+        "ACADEMY",
+        "02",
+        "DSH AI ASSISTANT"
+      ],
+      "font": "brand",
+      "size": 11,
+      "letterSpacing": "0.20em",
+      "lineHeight": 2.2,
+      "opacity": 0.55,
+      "color": "label-secondary"
+    },
+    {
+      "kind": "watermark",
+      "anchor": "bottom",
+      "text": "DOUBAO ///",
+      "font": "brand",
+      "size": 12,
+      "letterSpacing": "0.24em",
+      "lineHeight": 1,
+      "opacity": 0.7,
+      "color": "label-tertiary"
+    }
+  ],
+  "capabilities": [
+    "profileCard",
+    "rightRail",
+    "composerFrame",
+    "bottomBar",
+    "heroDecor",
+    "noiseOverlay",
+    "customCss"
+  ],
+  "customCss": "custom.css"
+}

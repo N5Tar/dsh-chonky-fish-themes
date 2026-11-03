@@ -53,7 +53,14 @@ function build(packId) {
   const glassInset = typeof g.composerGlassInset === 'number' ? g.composerGlassInset : 10
   const chatPadX = typeof g.chatGlassPadX === 'number' ? g.chatGlassPadX : 22
   const chatPadY = typeof g.chatGlassPadY === 'number' ? g.chatGlassPadY : 12
-  const railW = typeof g.railWidth === 'number' ? g.railWidth : 34
+  // 包自定义样式里显式隐藏装甲导轨时，预览也不再画导轨（否则预览会展示主题实际不用的黑色导轨）。
+  const customCssRel = typeof manifest.customCss === 'string' ? manifest.customCss : null
+  let customCssText = ''
+  if (customCssRel && Array.isArray(manifest.capabilities) && manifest.capabilities.includes('customCss')) {
+    try { customCssText = readFileSync(join(dir, customCssRel), 'utf8') } catch { customCssText = '' }
+  }
+  const hideRail = /data-cf\s*=\s*["']armor-rail["'][^}]*display\s*:\s*none/.test(customCssText.replace(/\s+/g, ' '))
+  const railW = hideRail ? 0 : (typeof g.railWidth === 'number' ? g.railWidth : 34)
   const composerW = typeof g.composerMaxWidth === 'number' ? g.composerMaxWidth : 720
   const composerH = typeof g.composerMinHeight === 'number' ? g.composerMinHeight : 150
   const padX = typeof g.composerPaddingX === 'number' ? g.composerPaddingX : 32
@@ -87,12 +94,20 @@ function build(packId) {
   --border-2:${light(t,'--dsw-alias-border-l2','rgba(28,28,31,.14)')};
   --border-3:${light(t,'--dsw-alias-border-l3','rgba(28,28,31,.2)')};
   --err:${light(t,'--dsw-alias-state-error-primary','#d92d20')};
+  --accent:${light(t,'--cf-accent','#1c1c1f')};
+  --accent-strong:${light(t,'--cf-accent-strong','#1c1c1f')};
+  --accent-soft:${light(t,'--cf-accent-soft','rgba(28,28,31,.09)')};
+  --accent-bar:${light(t,'--cf-accent','transparent')};
+  --on-accent:${light(t,'--cf-on-accent','#ffffff')};
+  --on-plate:${light(t,'--cf-on-plate',light(t,'--dsw-alias-label-primary','#1c1c1f'))};
+  --on-plate-dim:${light(t,'--cf-on-plate-dim',light(t,'--dsw-alias-label-tertiary','#9a9aa0'))};
   --sidebar-alpha:${typeof g.sidebarAlpha === 'number' ? g.sidebarAlpha : 0.94};
   --center-alpha:${typeof g.centerAlpha === 'number' ? g.centerAlpha : 0.42};
   --glass-alpha:${glassAlpha};
   --glass-blur:${glassBlur}px;
   --glass-inset:${glassInset}px;
   --rail-w:${railW}px;
+  --sidebar-pad-left:${hideRail ? '14px' : 'calc(var(--rail-w) + 8px)'};
   --chat-pad-x:${chatPadX}px;
   --chat-pad-y:${chatPadY}px;
   --composer-w:${composerW}px;
@@ -105,7 +120,7 @@ body{font-family:-apple-system,"PingFang SC","Noto Sans SC",system-ui,sans-serif
 body::before{content:"";position:fixed;inset:0;z-index:-1;${bg ? `background-image:url("${bg}");background-size:cover;background-position:center;` : ''}}
 .shell{position:relative;display:flex;height:100%;border:1px solid var(--border-2);border-radius:10px;overflow:hidden;background:transparent}
 /* sidebar */
-.sidebar{position:relative;width:280px;flex:none;background:color-mix(in srgb,var(--sidebar-fill) calc(var(--sidebar-alpha)*100%),transparent);border-right:1px solid var(--border-2);display:flex;flex-direction:column;padding:18px 14px 14px calc(var(--rail-w) + 8px);gap:12px;overflow:hidden}
+.sidebar{position:relative;width:280px;flex:none;background:color-mix(in srgb,var(--sidebar-fill) calc(var(--sidebar-alpha)*100%),transparent);border-right:1px solid var(--border-2);display:flex;flex-direction:column;padding:18px 14px 14px var(--sidebar-pad-left,calc(var(--rail-w) + 8px));gap:12px;overflow:hidden}
 .rail{position:absolute;left:0;top:0;bottom:0;width:var(--rail-w)}
 .brand{display:flex;align-items:flex-end;gap:10px}
 .brand b{font-size:21px;font-weight:900;font-style:italic;letter-spacing:.01em}
@@ -125,14 +140,14 @@ body::before{content:"";position:fixed;inset:0;z-index:-1;${bg ? `background-ima
 .nav-icon{width:18px;text-align:center;color:var(--label-2)}
 .list{flex:1;min-height:0;overflow:auto;border-top:1px solid var(--border-2);padding-top:8px}
 .list-head{display:flex;align-items:center;gap:6px;font-size:14px;font-weight:700;letter-spacing:.06em;padding:4px 6px}
-.list-head::before{content:"";width:5px;height:11px;background:var(--label-1);clip-path:polygon(0 0,100% 50%,0 100%)}
+.list-head::before{content:"";width:5px;height:11px;background:var(--accent);clip-path:polygon(0 0,100% 50%,0 100%)}
 .row{display:flex;align-items:center;gap:8px;height:29px;padding:0 6px;font-size:12px}
 .row.project{height:30px;font-weight:600;font-size:12.5px}
 .row.session{padding-left:20px;position:relative}
 .row.session::before{content:"";position:absolute;left:9px;top:0;bottom:0;width:1px;background:var(--border-2)}
 .diamond{position:absolute;left:6.5px;width:4px;height:4px;border:1px solid var(--border-3);background:var(--sidebar-fill);transform:rotate(45deg)}
-.diamond.on{background:var(--label-1);border-color:var(--label-1)}
-.row.active{background:rgba(28,28,31,.09)}
+.diamond.on{background:var(--accent);border-color:var(--accent)}
+.row.active{background:var(--accent-soft);box-shadow:inset 2px 0 var(--accent-bar)}
 .row-title{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .row-time{font-size:9px;letter-spacing:.06em;color:var(--label-3)}
 .foot{display:flex;align-items:center;gap:8px;font-size:11.5px;color:var(--label-2);padding-top:8px;border-top:1px solid var(--border-2)}
@@ -151,12 +166,14 @@ body::before{content:"";position:fixed;inset:0;z-index:-1;${bg ? `background-ima
 .composer-seat{display:flex;justify-content:center;padding:10px 24px 18px}
 .composer{position:relative;width:100%;max-width:var(--composer-w);min-height:var(--composer-h);padding:var(--composer-pad-y) var(--composer-pad-x);display:flex;flex-direction:column;justify-content:space-between;gap:10px;${frameBg ? `background:url("${frameBg}") center/100% 100% no-repeat;` : `border:1px solid var(--border-3);`}}
 .composer .glass{position:absolute;inset:var(--glass-inset);background:rgba(247,248,248,var(--glass-alpha));backdrop-filter:blur(var(--glass-blur));clip-path:polygon(2.2% 0,97.8% 0,100% 12%,100% 88%,97.8% 100%,2.2% 100%,0 88%,0 12%)}
+.composer .placeholder{color:var(--on-plate-dim)}
+.composer .square{border-color:color-mix(in srgb,var(--on-plate) 28%,transparent);color:var(--on-plate)}
 .composer .placeholder{position:relative;color:var(--label-3);font-size:13px}
 .composer .actions{position:relative;display:flex;align-items:center;gap:10px}
 .square{width:32px;height:32px;border:1px solid var(--border-3);display:grid;place-items:center;font-size:15px;background:transparent}
 .chip{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--err);background:rgba(217,45,32,.08);padding:5px 9px;border-radius:2px}
-.model{margin-left:auto;font-size:12px;color:var(--label-2)}
-.send{width:32px;height:32px;background:#1c1c1f;color:#fff;display:grid;place-items:center;border-radius:2px}
+.model{margin-left:auto;font-size:12px;color:var(--on-plate-dim)}
+.send{width:32px;height:32px;background:var(--accent);color:var(--on-accent);display:grid;place-items:center;border-radius:2px}
 .tune{position:absolute;left:50%;top:-18px;transform:translateX(-50%);width:68px;height:20px}
 .tune span{position:absolute;inset:6px 0 0;background:linear-gradient(180deg,#383e43,#1b2025 28%,#14191d 86%,#2a3035);border:1px solid #626b72;clip-path:polygon(6px 0,calc(100% - 6px) 0,100% 5px,100% 100%,0 100%,0 5px)}
 .tune i{position:absolute;left:50%;top:8px;width:6px;height:6px;border-top:2px solid #f6f7f8;border-left:2px solid #f6f7f8;transform:translateX(-50%) rotate(45deg)}
@@ -171,7 +188,7 @@ body::before{content:"";position:fixed;inset:0;z-index:-1;${bg ? `background-ima
 <div class="packbar">PREVIEW · ${esc(packId)}</div>
 <div class="shell">
   <aside class="sidebar">
-    <div class="rail">${railSvg.replace('<svg ', '<svg ').replace('</svg>', `<defs><linearGradient id="steel" x1="0" x2="1"><stop offset="0" stop-color="#494e54"/><stop offset=".36" stop-color="#25292e"/><stop offset="1" stop-color="#15171a"/></linearGradient></defs></svg>`)}</div>
+    ${hideRail ? '' : `<div class="rail">${railSvg.replace('<svg ', '<svg ').replace('</svg>', `<defs><linearGradient id="steel" x1="0" x2="1"><stop offset="0" stop-color="#494e54"/><stop offset=".36" stop-color="#25292e"/><stop offset="1" stop-color="#15171a"/></linearGradient></defs></svg>`)}</div>`}
     <div class="brand"><b>DSH</b><div class="divider"></div><div><small>${esc(copy.statusLabel || 'LINK ACTIVE')}</small><div class="micro">${esc(copy.brandMicroline || 'DEEP · SMART · HUMAN')}</div></div></div>
     <div class="profile"><div class="fade"></div><div class="info">
       <h2>${esc(profile.name || '大肥鱼')}</h2>

@@ -22,6 +22,19 @@
       "description": null,
       "version": "0.1.0",
       "colorScheme": "light"
+    },
+    {
+      "id": "doubao-teacher",
+      "name": {
+        "zh": "豆包学院教师",
+        "en": "Doubao Academy Teacher"
+      },
+      "description": {
+        "zh": "学院教师主题：暖白纸感、绯红标记、教室插画与教师立绘",
+        "en": "Academy teacher theme: warm paper surfaces, crimson accents, classroom artwork"
+      },
+      "version": "0.1.0",
+      "colorScheme": "light"
     }
   ]
 }

@@ -44,6 +44,7 @@ window.__ModuleLoader__.load({
     }
 
     /* ---------------------- decor overlay（hero 装饰 / 右栏 / 水印） ---------------------- */
+    // 主题包可用 data-cf 选择器定制 overlay（brand-block / bottom-armor / armor-rail / profile-card）。
     let currentTheme = null
     const themeSubs = new Set()
     function setTheme(next) {
@@ -479,6 +480,10 @@ window.__ModuleLoader__.load({
       // 宿主测高副本里整棵树在视口外：跳过渲染，避免重复装饰与控制件
       if (sidebarRect && (sidebarRect.top < -innerHeight || sidebarRect.top > innerHeight * 2)) return null
       const brandRect = rectOf('[class*="_logoRow"]')
+      // 把侧栏实测宽度暴露给包私有样式（custom.css 计算资料卡等 overlay 宽度用）。
+      if (sidebarRect) {
+        try { document.documentElement.style.setProperty('--cf-sidebar-width', sidebarRect.width + 'px') } catch (e) {}
+      }
       const caps = Array.isArray(theme && theme.capabilities) ? theme.capabilities : []
       const portraitUrl = (theme && theme._available && theme._available.assets && theme._available.assets.portrait && theme.assets && theme.assets.portrait)
         ? assetUrl(theme.assets.portrait, packIdOf(theme))
@@ -494,6 +499,7 @@ window.__ModuleLoader__.load({
         const sub = copy.brandMicroline || 'DEEP · SMART · HUMAN'
         children.push(h('div', {
           key: 'brand-block',
+          'data-cf': 'brand-block',
           style: {
             position: 'absolute', left: brandLeft + 'px', top: brandTop + 'px',
             width: Math.max(150, sidebarRect.width - RAIL_W - 22) + 'px',
@@ -539,6 +545,7 @@ window.__ModuleLoader__.load({
         const armorH = 38
         children.push(h('div', {
           key: 'bottom-armor',
+          'data-cf': 'bottom-armor',
           style: {
             position: 'absolute', left: sidebarRect.left + 'px',
             top: (sidebarRect.top + sidebarRect.height - armorH) + 'px',
@@ -584,6 +591,7 @@ window.__ModuleLoader__.load({
         )
         children.push(h('div', {
           key: 'armor-rail-wrap',
+          'data-cf': 'armor-rail',
           style: {
             position: 'absolute', left: sidebarRect.left + 'px', top: sidebarRect.top + 'px',
             width: RAIL_W + 'px', height: sidebarRect.height + 'px',
@@ -597,6 +605,7 @@ window.__ModuleLoader__.load({
         const cardH = profilePortraitHeight
         children.push(h('div', {
           key: 'profile-card',
+          'data-cf': 'profile-card',
           ref: cardRef,
           style: {
             position: 'absolute', left: (sidebarRect.left + RAIL_W + 12) + 'px',
@@ -1334,6 +1343,38 @@ window.__ModuleLoader__.load({
       style.textContent = css
       document.head.appendChild(style)
       disposers.push(() => style.remove())
+
+      /* --- 包私有样式：customCss 能力 ------------------------------------------ */
+      // 占位 style 紧跟引擎的基础样式插入；包内 CSS 取回后写入，切包/卸载时随 disposers 移除。
+      // 未声明能力、包内无文件、fetch 失败或非 2xx：静默移除占位 style，不影响主题其余部分。
+      const customRel = theme && typeof theme.customCss === 'string' && theme.customCss.length > 0
+        ? theme.customCss
+        : null
+      const customAvailable = Boolean(theme && theme._available && theme._available.customCss)
+      if (customRel && customAvailable) {
+        const customStyle = document.createElement('style')
+        customStyle.setAttribute('data-plugin-css', 'chonky-fish-themes-custom')
+        document.head.appendChild(customStyle)
+        let live = true
+        disposers.push(() => {
+          live = false
+          customStyle.remove()
+        })
+        fetch(assetUrl(customRel, packIdOf(theme)), { cache: 'no-store' })
+          .then((res) => (res.ok ? res.text() : null))
+          .then((text) => {
+            if (!live) return
+            if (typeof text !== 'string' || text.length === 0) {
+              customStyle.remove()
+              return
+            }
+            customStyle.textContent = text
+            diag({ stage: 'custom-css-loaded', pack: packIdOf(theme), cssLen: text.length })
+          })
+          .catch(() => {
+            if (live) customStyle.remove()
+          })
+      }
 
       if (theme && theme.tokens && ctx.theme) {
         disposers.push(ctx.theme.overrideTokens(packIdOf(theme), theme.tokens))

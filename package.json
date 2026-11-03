@@ -21,7 +21,7 @@
   ],
   "scripts": {
     "validate": "node tools/validate-pack.mjs packs/dafeiyu-mecha",
-    "validate:all": "node tools/build-index.mjs && node tools/validate-pack.mjs packs/dafeiyu-mecha && node tools/validate-pack.mjs packs/dafeiyu-armor",
+    "validate:all": "node tools/build-index.mjs && node tools/validate-pack.mjs packs/dafeiyu-mecha && node tools/validate-pack.mjs packs/dafeiyu-armor && node tools/validate-pack.mjs packs/doubao-teacher",
     "index": "node tools/build-index.mjs",
     "preview": "node tools/build-preview.mjs"
   },
