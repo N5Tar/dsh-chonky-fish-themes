@@ -6,10 +6,10 @@
 
 | 源文件（本目录） | 产物（`packs/dafeiyu-mecha/`） | 加工方式 |
 | --- | --- | --- |
-| `bg-source.png`（原图 2880×1620 2.0 MB） | `bg.webp`（2880×1620 WebP 199 KB） | 等比缩放后转 WebP q85 |
+| `bg-source.png`（原图 2.0 MB） | `bg.webp`（2880×1620 WebP 199 KB） | 等比缩放后转 WebP q85 |
 | `portrait-source.png`（原图 1295×1214 2.0 MB） | `portrait.webp`（640×600 WebP 45 KB） | 缩放到卡片比例 1.067 后转 WebP q85 |
-| `decor/composer-frame.png`（14 KB，带 alpha） | 同名复制到 `packs/dafeiyu-mecha/decor/` | 原样使用（9-slice 外框） |
-| `decor/composer-grain.png`（10.7 KB） | 同名复制到 `packs/dafeiyu-mecha/decor/` | 原样使用（磨砂纹理） |
+> 外框 / 磨砂两张素材与 `packs/dafeiyu-mecha/decor/` 下文件完全相同，已去重：只保留包内副本，避免仓库里存两份。
+
 | — | `decor/composer-frame-bg.png` | 由 `composer-frame.png` 预缩放到卡片物理尺寸生成 |
 | — | `noise.png` | 程序生成（128×128 噪点贴图） |
 | `reference/mockup.png`（原图 2.0 MB） | — | 仅设计参考，引擎不读取 |
