@@ -12,6 +12,7 @@ import { appendFileSync, createReadStream, existsSync, readFileSync, statSync } 
 import { tmpdir } from 'node:os'
 import { dirname, extname, join, resolve, sep } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { SkinControl } from './control.mjs'
 
 const PKG_DIR = dirname(fileURLToPath(import.meta.url))
 const PACKS_DIR = join(PKG_DIR, 'packs')
@@ -34,10 +35,23 @@ const MIME = {
 export const inject = ['webServer']
 
 export function apply(ctx) {
+  const version = JSON.parse(readFileSync(join(PKG_DIR, 'package.json'), 'utf8')).version
+  const control = new SkinControl({ packs: packIds(), version, packageName: '@local/dsh-chonky-fish-themes' })
+  // A plain loopback interface is enough for the local manager; windows reach it through this route.
+  ctx.effect(() => () => { void control.close() }, 'chonky-fish-themes: control cleanup')
+  void control.listen().catch(error => { ctx.logger?.warn?.('chonky-fish-themes: control listener failed: %s', error?.message ?? error) })
   ctx.effect(
-    () => ctx.webServer.register({ kind: 'prefix', path: ROUTE, handler: handle }),
+    () => ctx.webServer.register({ kind: 'prefix', path: ROUTE, handler: (req, res) => handle(req, res, control) }),
     'chonky-fish-themes: skin asset route',
   )
+}
+
+/** Installed pack ids, read from the shipped index. */
+function packIds() {
+  try {
+    const index = JSON.parse(readFileSync(join(PACKS_DIR, 'index.json'), 'utf8'))
+    return (Array.isArray(index.packs) ? index.packs : []).map(pack => pack.id).filter(id => typeof id === 'string')
+  } catch { return [] }
 }
 
 /** Resolve `rel` inside `root`; null on traversal or absolute input. */
@@ -132,7 +146,7 @@ function handleManifest(res, packId) {
   sendJson(res, 200, { ...manifest, _available: availability(packDir, manifest) })
 }
 
-async function handle(req, res) {
+async function handle(req, res, control) {
   try {
     const url = new URL(req.url ?? '/', 'http://localhost')
     let pathname
@@ -140,6 +154,21 @@ async function handle(req, res) {
       pathname = decodeURIComponent(url.pathname)
     } catch {
       sendText(res, 400, 'bad path')
+      return
+    }
+
+    // Same-origin state for every DSH window; the manager uses the loopback port instead.
+    if (pathname === ROUTE + '/__state') {
+      sendJson(res, 200, control.snapshot())
+      return
+    }
+
+    if (pathname === ROUTE + '/__select') {
+      if (req.method !== 'POST') { sendText(res, 405, 'method not allowed'); return }
+      let body
+      try { body = JSON.parse(await readBody(req)) } catch { sendText(res, 400, 'bad body'); return }
+      if (!control.select(body?.pack)) { sendText(res, 400, 'invalid pack'); return }
+      sendJson(res, 200, control.snapshot())
       return
     }
 

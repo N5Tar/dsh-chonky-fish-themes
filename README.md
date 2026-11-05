@@ -4,6 +4,15 @@ DeepSeek Harness（DSH）皮肤引擎 + `dafeiyu-mecha` 主题包。
 
 **设计目标**：把视觉层做成「主题包 = 素材 + theme.json」，换主题只换 `packs/<id>/`，不改引擎代码。
 
+## 本机控制接口（管理器用）
+
+插件启动时在 `127.0.0.1` 上监听一个系统分配端口，并把端口写到 `~/.dafeiyu-theme-manager/plugin-endpoint.json`。管理器读取该文件后直接调用：
+
+- `GET /state` → `{ ok, pack, version, packs }`
+- `POST /select`，body `{"pack":"<主题ID>"}` 或 `{"pack":"default"}` → 切换皮肤
+
+不需要配对码、不需要凭据；接口只在回环地址上开放。DSH 窗口内通过同源路由 `/skin/__state`、`/skin/__select` 读取和上报同一份状态，所以管理器或任一窗口切换后，其它窗口会在约 1.5 秒内跟随。
+
 ## 结构
 
 ```

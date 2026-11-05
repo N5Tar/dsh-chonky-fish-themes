@@ -158,6 +158,25 @@ window.__ModuleLoader__.load({
       packCatalog = Array.isArray(list) ? list : []
       notifyPacks()
     }
+
+    /* ---- 本机控制接口：其他窗口或管理器切换后，这里跟随 ---- */
+    async function hostState() {
+      try {
+        const res = await fetch('/skin/__state', { cache: 'no-store' })
+        if (!res.ok) return null
+        const value = await res.json()
+        return value && typeof value === 'object' ? value : null
+      } catch (e) {
+        return null
+      }
+    }
+    function reportSelection(pack) {
+      try {
+        fetch('/skin/__select', {
+          method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ pack }),
+        }).catch(() => {})
+      } catch (e) {}
+    }
     /** 实际生效的包：'default' 表示回原生；null/失效时回退目录首个。 */
     function resolvePackId() {
       if (activePack === 'default') return null
@@ -238,7 +257,7 @@ window.__ModuleLoader__.load({
           key: opt.id,
           type: 'button',
           'aria-pressed': effective === opt.id,
-          onClick: () => setActivePack(opt.id === 'default' ? 'default' : opt.id),
+          onClick: () => { const next = opt.id === 'default' ? 'default' : opt.id; setActivePack(next); reportSelection(next) },
           style: {
             padding: '5px 12px', fontSize: '12px', lineHeight: 1.2, borderRadius: '4px', cursor: 'pointer',
             border: 0,
@@ -1450,6 +1469,20 @@ window.__ModuleLoader__.load({
           id: 'chonky-fish-theme-pack',
           order: 10.5,
         }, ThemePackRow))
+
+        ctx.effect(() => {
+          let stopped = false
+          // 本窗口已有的选择先登记，避免打开时被默认值覆盖。
+          if (activePack) reportSelection(activePack)
+          const tick = async () => {
+            const state = await hostState()
+            if (stopped || !state) return
+            if (typeof state.pack === 'string' && state.pack !== activePack) setActivePack(state.pack)
+          }
+          const timer = setInterval(tick, 1500)
+          void tick()
+          return () => { stopped = true; clearInterval(timer) }
+        }, 'chonky-fish-themes: control sync')
 
         ctx.effect(() => {
           let disposed = false

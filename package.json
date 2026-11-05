@@ -1,6 +1,6 @@
 {
   "name": "@local/dsh-chonky-fish-themes",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "private": true,
   "description": "Chonky Fish theme engine for the Harness Web UI: skin packs (assets + theme.json) rendered over the shipped UI.",
   "type": "module",
@@ -12,6 +12,7 @@
   },
   "files": [
     "index.js",
+    "control.mjs",
     "client.js",
     "cordis.patch.yml",
     "locale/*.json",
