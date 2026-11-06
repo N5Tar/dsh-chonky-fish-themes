@@ -45,7 +45,7 @@ test('the loopback interface publishes its port and serves state and selection',
   assert.equal(await readFile(join(dir, 'endpoint.json'), 'utf8').then(() => 'present', () => 'gone'), 'gone')
 })
 
-test('subscribers observe accepted changes only', async () => {
+test('subscribers observe every accepted explicit selection, including the same id', async () => {
   const { control } = await fixture()
   const seen = []
   const off = control.subscribe(value => seen.push(value))
@@ -54,5 +54,5 @@ test('subscribers observe accepted changes only', async () => {
   control.select('nope')
   off()
   control.select('default')
-  assert.deepEqual(seen, ['dafeiyu-armor'])
+  assert.deepEqual(seen, ['dafeiyu-armor', 'dafeiyu-armor'])
 })

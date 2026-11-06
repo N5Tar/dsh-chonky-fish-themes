@@ -30,12 +30,15 @@ window.__ModuleLoader__.load({
       return typeof value === 'number' && Number.isFinite(value) ? value : fallback
     }
 
+    const resourceLoads = new Map()
     function assetUrl(rel, packId) {
-      return typeof rel === 'string' && rel.length > 0 ? PACK_ROUTE(packId) + rel : null
+      if (typeof rel !== 'string' || !rel) return null
+      const load = resourceLoads.get(packId)
+      return PACK_ROUTE(load ? load.id : packId) + rel + (load ? '?cf=' + load.nonce : '')
     }
     /** 当前主题包 id（theme.id 优先，缺失时回退默认包）。 */
     function packIdOf(theme) {
-      return theme && typeof theme.id === 'string' && theme.id ? theme.id : DEFAULT_PACK
+      return theme && (theme._loadKey || theme.id) || DEFAULT_PACK
     }
 
     function tint(varName, alpha) {
@@ -136,7 +139,9 @@ window.__ModuleLoader__.load({
         return null
       }
     }
-    let activePack = readActivePack()
+    const legacyPack = readActivePack()
+    let activePack = null
+    let selectionError = ''
     let packCatalog = []
     let activeLocaleId = 'zh-CN'
     const packSubs = new Set()
@@ -160,9 +165,9 @@ window.__ModuleLoader__.load({
     }
 
     /* ---- 本机控制接口：其他窗口或管理器切换后，这里跟随 ---- */
-    async function hostState() {
+    async function hostState(signal) {
       try {
-        const res = await fetch('/skin/__state', { cache: 'no-store' })
+        const res = await fetch('/skin/__state', { cache: 'no-store', signal })
         if (!res.ok) return null
         const value = await res.json()
         return value && typeof value === 'object' ? value : null
@@ -170,20 +175,24 @@ window.__ModuleLoader__.load({
         return null
       }
     }
-    function reportSelection(pack) {
+    async function reportSelection(pack, onlyIfUnset = false) {
       try {
-        fetch('/skin/__select', {
-          method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ pack }),
-        }).catch(() => {})
-      } catch (e) {}
+        const response = await fetch('/skin/__select', {
+          method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ pack, onlyIfUnset }),
+        })
+        if (!response.ok) throw new Error('Theme selection failed: HTTP ' + response.status)
+        selectionError = ''
+        notifyPacks()
+        return response.json()
+      } catch (error) {
+        selectionError = String(error.message || error)
+        notifyPacks()
+        return null
+      }
     }
     /** 实际生效的包：'default' 表示回原生；null/失效时回退目录首个。 */
     function resolvePackId() {
-      if (activePack === 'default') return null
-      if (activePack && packCatalog.some((p) => p.id === activePack)) return activePack
-      // 未选择时优先默认包，其次目录第一个
-      if (packCatalog.some((p) => p.id === DEFAULT_PACK)) return DEFAULT_PACK
-      return packCatalog.length > 0 ? packCatalog[0].id : null
+      return activePack === 'default' ? null : activePack
     }
     function usePacks() {
       const [snap, setSnap] = React.useState({ catalog: packCatalog, active: activePack })
@@ -247,6 +256,7 @@ window.__ModuleLoader__.load({
         },
       },
         h('span', { style: { fontSize: '13px', fontWeight: 500, color: 'var(--dsw-alias-label-primary)' } }, label),
+        selectionError && h('span', { role: 'alert' }, selectionError),
         h('div', {
           role: 'group', 'aria-label': label,
           style: {
@@ -257,7 +267,7 @@ window.__ModuleLoader__.load({
           key: opt.id,
           type: 'button',
           'aria-pressed': effective === opt.id,
-          onClick: () => { const next = opt.id === 'default' ? 'default' : opt.id; setActivePack(next); reportSelection(next) },
+          onClick: () => reportSelection(opt.id),
           style: {
             padding: '5px 12px', fontSize: '12px', lineHeight: 1.2, borderRadius: '4px', cursor: 'pointer',
             border: 0,
@@ -1471,137 +1481,129 @@ window.__ModuleLoader__.load({
         }, ThemePackRow))
 
         ctx.effect(() => {
-          let stopped = false
-          // 本窗口已有的选择先登记，避免打开时被默认值覆盖。
-          if (activePack) reportSelection(activePack)
-          const tick = async () => {
-            const state = await hostState()
-            if (stopped || !state) return
-            if (typeof state.pack === 'string' && state.pack !== activePack) setActivePack(state.pack)
-          }
-          const timer = setInterval(tick, 1500)
-          void tick()
-          return () => { stopped = true; clearInterval(timer) }
-        }, 'chonky-fish-themes: control sync')
-
-        ctx.effect(() => {
           let disposed = false
-          let themeCache = null
-          let loadedId = null
-          let frameReady = false
+          let initialized = false
+          let checking = false
+          let pending = false
+          let pendingForce = false
+          let generation = 0
+          let loadController = null
           let applied = []
-          let probed = false
-
-          diag({ stage: 'boot' })
-
-          const disposeApplied = () => {
-            for (const dispose of applied) {
-              try { dispose() } catch (e) {}
-            }
+          const lifetime = new AbortController()
+          const root = document.documentElement.style
+          const original = ['--cf-composer-alpha', '--cf-chat-alpha', '--cf-composer-blur', '--cf-chat-blur', '--cf-card-gap', '--cf-sidebar-width'].map(name => [name, root.getPropertyValue(name), root.getPropertyPriority(name)])
+          const clearApplied = () => {
+            for (const dispose of applied.reverse()) { try { dispose() } catch (error) { console.warn(LOG, 'theme cleanup', error) } }
             applied = []
-          }
-
-          const sync = () => {
-            if (disposed) return
-            disposeApplied()
-            const packId = resolvePackId()
-            if (!packId || !themeCache || loadedId !== packId) {
-              setTheme(null)
-              return
-            }
-            setTheme(themeCache)
-            try {
-              applyPack(ctx, themeCache, applied, frameReady)
-            } catch (err) {
-              console.error(LOG, 'applyPack failed:', err)
-              diag({ stage: 'apply-error', pack: packIdOf(themeCache), message: String((err && err.message) || err) })
-            }
-          }
-
-          const probeFrame = (theme) => {
-            if (probed) return
-            probed = true
-            const frameRel = theme.assets && theme.assets['composer.frame']
-            const frameAvailable = Boolean(theme._available && theme._available.assets && theme._available.assets['composer.frame'])
-            const frameUrl = frameAvailable && frameRel ? assetUrl(frameRel, packIdOf(theme)) : null
-            if (!frameUrl) { sync(); return }
-            try {
-              const probe = new Image()
-              probe.onload = () => {
-                if (disposed) return
-                frameReady = true
-                diag({ stage: 'frame-loaded', pack: packIdOf(theme), w: probe.naturalWidth, h: probe.naturalHeight })
-                sync()
-              }
-              probe.onerror = () => {
-                if (disposed) return
-                diag({ stage: 'frame-error', pack: packIdOf(theme) })
-                sync()
-              }
-              probe.src = frameUrl
-            } catch (err) {
-              diag({ stage: 'probe-throw', message: String((err && err.message) || err) })
-              sync()
-            }
-          }
-
-          const loadTheme = (packId) => {
-            disposeApplied()
             setTheme(null)
-            if (!packId) { themeCache = null; loadedId = null; return }
-            if (loadedId === packId && themeCache) { sync(); return }
-            themeCache = null
-            loadedId = null
-            probed = false
-            frameReady = false
-            fetch(PACK_ROUTE(packId) + 'theme.json', { cache: 'no-store' })
-              .then((res) => {
-                if (!res.ok) throw new Error('theme.json HTTP ' + res.status)
-                return res.json()
-              })
-              .then((theme) => {
-                if (disposed || resolvePackId() !== packId) return
-                themeCache = theme
-                loadedId = packId
-                diag({ stage: 'theme-loaded', pack: packId })
-                probeFrame(theme)
-              })
-              .catch((err) => {
-                console.error(LOG, 'theme load failed:', packId, err)
-                diag({ stage: 'theme-fetch-error', pack: packId, message: String((err && err.message) || err) })
-                sync()
-              })
+            for (const [name, value, priority] of original) { if (value) root.setProperty(name, value, priority); else root.removeProperty(name) }
           }
-
-          const onPacks = () => loadTheme(resolvePackId())
-          packSubs.add(onPacks)
-
-          fetch(INDEX_ROUTE, { cache: 'no-store' })
-            .then((res) => {
-              if (!res.ok) throw new Error('__index HTTP ' + res.status)
-              return res.json()
-            })
-            .then((json) => {
-              if (disposed) return
-              const list = Array.isArray(json && json.packs) ? json.packs : []
-              setPackCatalog(list)
-              diag({ stage: 'packs', count: list.length, ids: list.map((p) => p.id) })
-              loadTheme(resolvePackId())
-            })
-            .catch((err) => {
-              console.error(LOG, 'pack index failed:', err)
-              diag({ stage: 'index-error', message: String((err && err.message) || err) })
-              setPackCatalog([])
-              loadTheme(null)
-            })
-
+          const probeFrame = (theme, signal) => new Promise((resolve) => {
+            const rel = theme.assets && theme.assets['composer.frame']
+            if (!rel || !theme._available?.assets?.['composer.frame']) { resolve(false); return }
+            const image = new Image()
+            const finish = (ready) => {
+              clearTimeout(timer)
+              image.onload = image.onerror = null
+              signal.removeEventListener('abort', abort)
+              if (!ready) image.src = ''
+              resolve(ready)
+            }
+            const abort = () => finish(false)
+            const timer = setTimeout(abort, 15000)
+            image.onload = () => finish(true)
+            image.onerror = abort
+            signal.addEventListener('abort', abort, { once: true })
+            if (signal.aborted) abort(); else image.src = assetUrl(rel, packIdOf(theme))
+          })
+          const loadTheme = async (id) => {
+            const own = ++generation
+            loadController?.abort()
+            loadController = new AbortController()
+            const signal = loadController.signal
+            if (!id || id === 'default') { clearApplied(); resourceLoads.clear(); selectionError = ''; notifyPacks(); return }
+            // This nonce is browser cache busting only, never persisted or exposed as a theme version.
+            const nonce = Date.now().toString(36) + '-' + own + '-' + Math.random().toString(36).slice(2)
+            const key = id + '@' + nonce
+            resourceLoads.set(key, { id, nonce })
+            let committing = false
+            try {
+              const response = await fetch(PACK_ROUTE(id) + 'theme.json?cf=' + nonce, { cache: 'no-store', signal })
+              if (!response.ok) throw new Error('theme.json HTTP ' + response.status)
+              const manifest = await response.json()
+              if (!manifest || manifest.id !== id) throw new Error('Theme identity mismatch')
+              const theme = { ...manifest, _loadKey: key }
+              const frameReady = await probeFrame(theme, signal)
+              if (disposed || signal.aborted || own !== generation) return
+              // No id-only cache: explicit select and reconnect always read the files again.
+              buildCss(theme, frameReady)
+              committing = true
+              clearApplied()
+              applyPack(ctx, theme, applied, frameReady)
+              setTheme(theme)
+              for (const existing of resourceLoads.keys()) if (existing !== key) resourceLoads.delete(existing)
+              selectionError = ''
+              notifyPacks()
+            } catch (error) {
+              if (disposed || signal.aborted || own !== generation) return
+              if (committing) clearApplied()
+              resourceLoads.delete(key)
+              selectionError = String(error.message || error)
+              notifyPacks()
+              console.error(LOG, 'theme load failed:', id, error)
+            } finally {
+              if (!currentTheme || packIdOf(currentTheme) !== key) resourceLoads.delete(key)
+            }
+          }
+          const refresh = async (force) => {
+            pending = true
+            pendingForce = pendingForce || force
+            if (checking) return
+            checking = true
+            try {
+              while (pending && !disposed) {
+                const explicit = pendingForce
+                pending = pendingForce = false
+                const [stateValue, catalogResponse] = await Promise.all([hostState(lifetime.signal), fetch(INDEX_ROUTE, { cache: 'no-store', signal: lifetime.signal })])
+                if (disposed) return
+                if (!stateValue || !catalogResponse.ok) throw new Error('Theme state or catalog is unavailable')
+                let state = stateValue
+                const catalog = await catalogResponse.json()
+                if (disposed) return
+                setPackCatalog(Array.isArray(catalog.packs) ? catalog.packs : [])
+                if (state.pack === null) {
+                  const proposed = legacyPack === 'default' || packCatalog.some(pack => pack.id === legacyPack) ? legacyPack
+                    : packCatalog.some(pack => pack.id === DEFAULT_PACK) ? DEFAULT_PACK : packCatalog[0]?.id || 'default'
+                  state = await reportSelection(proposed, true)
+                  if (disposed || !state) return
+                }
+                if (typeof state.pack !== 'string') throw new Error('Invalid Host theme selection')
+                const changed = state.pack !== activePack
+                if (changed) setActivePack(state.pack)
+                if (explicit || changed || !initialized) { initialized = true; void loadTheme(state.pack) }
+              }
+            } catch (error) {
+              if (!disposed) { selectionError = String(error.message || error); notifyPacks() }
+            } finally { checking = false }
+          }
+          const events = typeof EventSource === 'function' ? new EventSource('/skin/__events') : null
+          const onRefresh = () => { void refresh(true) }
+          events?.addEventListener('refresh', onRefresh)
+          // Polling discovers newly deployed directories but never redraws an unchanged selection.
+          const timer = setInterval(() => { void refresh(false) }, 1500)
+          if (!events) void refresh(false)
           return () => {
             disposed = true
-            packSubs.delete(onPacks)
-            disposeApplied()
-            setTheme(null)
+            generation++
+            clearInterval(timer)
+            events?.removeEventListener('refresh', onRefresh)
+            events?.close()
+            lifetime.abort()
+            loadController?.abort()
+            clearApplied()
+            resourceLoads.clear()
           }
-        }, 'chonky-fish-themes: skin')
+        }, 'chonky-fish-themes: skin and control')
       },
     }
   },
